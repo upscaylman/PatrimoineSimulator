@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Patrimonial Expert - France 2025</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; min-height: 100vh; transition: background 0.3s; }
+        body.dark-mode { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .container { max-width: 1600px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; transition: background 0.3s, color 0.3s; }
+        body.dark-mode .container { background: #1e293b; color: #e2e8f0; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; position: relative; }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .subtitle { font-size: 1.1rem; opacity: 0.9; }
+        .loader { position: absolute; top: 20px; right: 30px; width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        .loader.active { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .dark-mode-toggle { position: absolute; top: 20px; right: 70px; background: rgba(255, 255, 255, 0.2); border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-size: 1.2rem; transition: all 0.3s; }
+        .dark-mode-toggle:hover { background: rgba(255, 255, 255, 0.3); }
+        .main-content { padding: 20px; }
+        .params-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .param-card { background: #f8f9fa; padding: 20px; padding-bottom: 55px; border-radius: 12px; border: 3px solid #e9ecef; transition: all 0.3s; position: relative; min-height: 280px; }
+        body.dark-mode .param-card { background: #0f172a; border-color: #334155; }
+        .param-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; border-radius: 12px 12px 0 0; }
+        .param-card.capital-card::before { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+        .param-card.av-card::before { background: #10b981; }
+        .param-card.scpi-card::before { background: #f59e0b; }
+        .param-card.immo-card::before { background: #ef4444; }
+        .param-card.actions-card::before { background: linear-gradient(90deg, #f59e0b 0%, #8b5cf6 100%); }
+        .param-card.lombard-card::before { background: #3b82f6; }
+        .param-card.pel-card::before { background: #06b6d4; }
+        .param-card.per-card::before { background: #8b5cf6; }
+        .param-card:hover { border-color: #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2); }
+        .param-card h3 { color: #667eea; margin-bottom: 15px; font-size: 1.2rem; padding-top: 8px; }
+        .param-legend { position: absolute; bottom: 0; left: 0; right: 0; font-size: 0.7rem; color: #6c757d; padding: 10px 15px; border-top: 1px solid #dee2e6; line-height: 1.3; background: #f8f9fa; border-radius: 0 0 9px 9px; }
+        body.dark-mode .param-legend { background: #0f172a; border-top-color: #334155; color: #94a3b8; }
+        .param-legend a { color: #667eea; text-decoration: none; }
+        .param-legend a:hover { text-decoration: underline; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #495057; font-size: 0.9rem; }
+        body.dark-mode .input-group label { color: #e2e8f0; }
+        .input-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        input[type="number"] { width: 110px; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 0.95rem; transition: border-color 0.3s; font-weight: 600; }
+        body.dark-mode input[type="number"] { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+        input[type="number"]:focus { outline: none; border-color: #667eea; }
+        input[type="number"]:disabled { background: #e9ecef; cursor: not-allowed; opacity: 0.6; }
+        input[type="range"] { width: 100%; height: 8px; border-radius: 5px; background: #dee2e6; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #667eea; cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #667eea; cursor: pointer; border: none; }
+        .allocation-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .allocation-value { font-size: 1.4rem; font-weight: bold; color: #667eea; }
+        .allocation-montant { font-size: 0.9rem; color: #6c757d; }
+        body.dark-mode .allocation-montant { color: #94a3b8; }
+        .switch-container { display: flex; align-items: center; gap: 10px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-switch { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider-switch:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-switch { background-color: #667eea; }
+        input:checked + .slider-switch:before { transform: translateX(26px); }
+        .scenario-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .scenario-tab { flex: 1; min-width: 140px; padding: 15px 20px; border: 2px solid #dee2e6; border-radius: 10px; background: white; cursor: pointer; text-align: center; transition: all 0.3s; font-weight: 600; }
+        body.dark-mode .scenario-tab { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+        .scenario-tab:hover { border-color: #667eea; }
+        .scenario-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: transparent; }
+        .allocation-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+        .allocation-badge.success { background: #d1fae5; color: #065f46; }
+        .allocation-badge.warning { background: #fef3c7; color: #92400e; }
+        .allocation-badge.error { background: #fee2e2; color: #991b1b; }
+        .results-section { display: none; margin-top: 30px; opacity: 0; transition: opacity 0.3s; }
+        .results-section.active { display: block; opacity: 1; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .summary-card h3 { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; }
+        .summary-card .value { font-size: 2rem; font-weight: bold; }
+        .summary-card .sub-value { font-size: 0.95rem; opacity: 0.85; margin-top: 5px; line-height: 1.4; }
+        .chart-container { background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 25px; }
+        body.dark-mode .chart-container { background: #0f172a; }
+        .chart-container h3 { margin-bottom: 20px; color: #495057; }
+        body.dark-mode .chart-container h3 { color: #e2e8f0; }
+        canvas { max-height: 400px; }
+        .table-tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #dee2e6; }
+        .table-tab { flex: 1; padding: 15px 20px; background: #e9ecef; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: #495057; transition: all 0.3s; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .table-tab:hover { background: #dee2e6; }
+        .table-tab.active { background: white; color: #667eea; border-bottom: 2px solid white; margin-bottom: -2px; }
+        body.dark-mode .table-tab.active { background: #0f172a; }
+        .table-content { display: none; overflow-x: auto; }
+        .table-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0; }
+        body.dark-mode table { background: #0f172a; }
+        th, td { padding: 10px 8px; text-align: right; border-bottom: 1px solid #dee2e6; font-size: 0.85rem; }
+        th { background: #667eea; color: white; font-weight: 600; position: sticky; top: 0; }
+        body.dark-mode th { background: #334155; }
+        tr:hover { background: #f8f9fa; }
+        body.dark-mode tr:hover { background: #1e293b; }
+        td:first-child, th:first-child { text-align: left; font-weight: 600; }
+        .positive { color: #10b981; }
+        .negative { color: #dc3545; }
+        .recommendations { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .recommendations h3 { color: #856404; margin-bottom: 15px; }
+        .recommendations ul { list-style-position: inside; color: #856404; }
+        .recommendations li { margin-bottom: 8px; }
+        .risks { background: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .risks h3 { color: #721c24; margin-bottom: 15px; }
+        .risks ul { list-style-position: inside; color: #721c24; }
+        .allocations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .allocation-card { background: white; border: 2px solid #667eea; padding: 20px; border-radius: 12px; }
+        .allocation-card h4 { color: #667eea; margin-bottom: 10px; }
+        select { width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 1rem; background: white; cursor: pointer; transition: border-color 0.3s; }
+        body.dark-mode select { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+        select:focus { outline: none; border-color: #667eea; }
+        select:disabled { background: #e9ecef; cursor: not-allowed; }
+        .unit-label { font-size: 0.9rem; color: #6c757d; font-weight: 600; }
+        body.dark-mode .unit-label { color: #94a3b8; }
+        .auto-update-badge { position: absolute; top: 20px; left: 30px; background: rgba(16, 185, 129, 0.9); color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .auto-update-badge::before { content: '●'; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .warning-badge { background: #fbbf24; color: #78350f; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; margin-top: 5px; font-weight: 600; display: inline-block; }
+        .success-badge { background: #10b981; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; margin-top: 5px; font-weight: 600; display: inline-block; }
+        .info-box { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 12px; border-radius: 6px; margin-top: 10px; font-size: 0.85rem; color: #0c4a6e; }
+        body.dark-mode .info-box { background: #1e3a5f; border-color: #3b82f6; color: #bfdbfe; }
+        
+        /* Tooltips */
+        .tooltip-icon { display: inline-block; width: 18px; height: 18px; background: #667eea; color: white; border-radius: 50%; text-align: center; line-height: 18px; font-size: 12px; font-weight: bold; cursor: help; margin-left: 5px; position: relative; }
+        .tooltip-icon:hover::after { content: attr(data-tooltip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px; white-space: normal; width: 250px; font-size: 0.85rem; font-weight: normal; line-height: 1.4; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .tooltip-icon:hover::before { content: ''; position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #1e293b; z-index: 1001; }
+        
+        /* Plafonds */
+        .plafond-warning { animation: fadeIn 0.3s; }
+        .plafond-warning.ok { background: #d1fae5; border-left: 4px solid #10b981; color: #065f46; }
+        .plafond-warning.alert { background: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; }
+        .plafond-warning.warning { background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; }
+        .plafond-warning.error { background: #fecaca; border-left: 4px solid #dc2626; color: #7f1d1d; font-weight: 600; }
+        .plafond-warning.info { background: #dbeafe; border-left: 4px solid #3b82f6; color: #1e3a8a; }
+        body.dark-mode .plafond-warning.ok { background: #064e3b; color: #d1fae5; }
+        body.dark-mode .plafond-warning.alert { background: #78350f; color: #fef3c7; }
+        body.dark-mode .plafond-warning.warning { background: #7f1d1d; color: #fee2e2; }
+        body.dark-mode .plafond-warning.error { background: #991b1b; color: #fecaca; }
+        body.dark-mode .plafond-warning.info { background: #1e3a8a; color: #dbeafe; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.8rem; }
+            .subtitle { font-size: 0.95rem; }
+            .main-content { padding: 15px; }
+            .params-grid { grid-template-columns: 1fr; gap: 15px; }
+            .param-card { padding: 15px; padding-bottom: 50px; min-height: auto; }
+            .param-legend { font-size: 0.65rem; padding: 8px 12px; }
+            .summary-cards { grid-template-columns: 1fr; gap: 15px; }
+            .summary-card .value { font-size: 1.6rem; }
+            .allocations-grid { grid-template-columns: 1fr; }
+            .chart-container { padding: 15px; }
+            .table-tab { font-size: 0.9rem; padding: 12px 15px; }
+            input[type="number"] { width: 100px; padding: 6px 10px; font-size: 0.9rem; }
+            .auto-update-badge { position: static; margin-bottom: 10px; }
+            .dark-mode-toggle { right: 10px; top: 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<header>
+    <div class="auto-update-badge">Mise à jour automatique</div>
+    <button class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+    <div class="loader" id="loader"></div>
+    <h1>🏦 Simulateur Patrimonial Expert</h1>
+    <p class="subtitle">Ingénierie patrimoniale & fiscalité française 2025 • Vos allocations dans 3 scénarios</p>
+</header>
+<div class="main-content">
+    <div class="scenario-tabs">
+        <div class="scenario-tab active" data-scenario="ultraRealiste"><div style="font-size: 1.5rem;">📊</div><div>Ultra Réaliste</div><small>Données historiques</small></div>
+        <div class="scenario-tab" data-scenario="pessimiste"><div style="font-size: 1.5rem;">📉</div><div>Pessimiste</div><small>Marchés difficiles</small></div>
+        <div class="scenario-tab" data-scenario="neutre"><div style="font-size: 1.5rem;">⚖️</div><div>Neutre</div><small>Hypothèses conservatrices</small></div>
+    </div>
+    
+    <div class="params-grid">
+        <div class="param-card capital-card">
+            <h3>💰 Capital à Investir</h3>
+            <div class="input-group">
+                <label>Capital initial
+                    <span class="tooltip-icon" data-tooltip="Votre capital de départ à investir. Le crédit Lombard s'ajoutera à ce montant pour augmenter votre capacité d'investissement.">?</span>
+                </label>
+                <div class="input-row">
+                    <input type="number" id="capital-total-input" class="auto-calc" value="230000" min="0" step="1000">
+                    <span class="unit-label">€</span>
+                </div>
+            </div>
+            <div id="lombard-display" style="display: none; margin: 15px 0; padding: 12px; background: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 6px;">
+                <div style="font-weight: 600; color: #1e40af; margin-bottom: 5px;">+ Crédit Lombard 🏦</div>
+                <div style="font-size: 0.9rem; color: #1e3a8a;"><span id="lombard-montant-display">0 €</span> (année <span id="lombard-annee-display">0</span>)</div>
+            </div>
+            <div style="border-top: 2px solid #667eea; padding-top: 10px; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: 600; color: #495057;">Capital total disponible :</span>
+                    <span id="capital-avec-lombard" style="font-weight: 700; color: #667eea; font-size: 1.1rem;">230 000 €</span>
+                </div>
+            </div>
+            <div class="input-group switch-container" style="margin-top: 15px; margin-bottom: 15px;">
+                <label style="flex: 1;">Prendre en compte l'inflation
+                    <span class="tooltip-icon" data-tooltip="Érosion du pouvoir d'achat dans le temps. Ex : avec 2%/an, 100€ aujourd'hui vaudront 85€ dans 8 ans. Active cette option pour voir la valeur réelle de votre patrimoine.">?</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="inflation-actif" class="auto-calc">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="inflation-params" style="opacity: 0.5; pointer-events: none;">
+                <div class="input-group">
+                    <label>Taux d'inflation annuel</label>
+                    <div class="input-row">
+                        <input type="number" id="inflation-taux-input" class="auto-calc" value="2.0" min="0" max="10" step="0.1">
+                        <span class="unit-label">%</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 0.9rem; color: #6c757d;">Alloué :</span>
+                    <span id="capital-alloue" style="font-weight: 600; color: #667eea;">0 €</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 0.9rem; color: #6c757d;">Disponible :</span>
+                    <span id="capital-disponible" style="font-weight: 600; color: #10b981;">230 000 €</span>
+                </div>
+                <div id="allocation-status" class="allocation-badge success">✓ Allocation : 0%</div>
+            </div>
+            <div class="param-legend">* Capital initial + crédit Lombard = capital total • Objectif : allocation 100% • Inflation : érosion pouvoir d'achat</div>
+        </div>
+
+        <div class="param-card av-card">
+            <h3>💼 Assurance Vie</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer l'assurance vie</label>
+                <label class="switch">
+                    <input type="checkbox" id="av-actif" class="auto-calc" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="av-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>Allocation</label>
+                        <div>
+                            <span class="allocation-value" id="av-alloc-display">30%</span>
+                            <span class="allocation-montant" id="av-montant-display">(69 000 €)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="av-alloc-slider" class="auto-calc" min="0" max="100" value="30" step="0.5">
+                </div>
+                <div class="input-group">
+                    <label>Rendement fonds euros (brut/an)
+                        <span class="tooltip-icon" data-tooltip="Rendement annuel avant frais de gestion et fiscalité. Moyenne 2025 : 2,5-3,5%. Le fonds euros est garanti en capital par l'assureur.">?</span>
+                    </label>
+                    <div class="input-row"><input type="number" id="av-rendement-input" class="auto-calc" value="3.0" min="0" max="10" step="0.01"><span class="unit-label">%</span></div>
+                </div>
+                <div class="input-group">
+                    <label>Rente mensuelle (brut)
+                        <span class="tooltip-icon" data-tooltip="Montant brut que vous souhaitez retirer chaque mois. Le simulateur calcule automatiquement la durée pendant laquelle vous pourrez la percevoir.">?</span>
+                    </label>
+                    <div class="input-row"><input type="number" id="rente-input" class="auto-calc" value="850" min="0" step="0.01"><span class="unit-label">€</span></div>
+                </div>
+                <div class="input-group"><label>Frais d'entrée</label><div class="input-row"><input type="number" id="av-frais-input" class="auto-calc" value="1.0" min="0" max="5" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Frais de gestion (annuels)</label><div class="input-row"><input type="number" id="av-frais-gestion-input" class="auto-calc" value="0.7" min="0" max="3" step="0.01"><span class="unit-label">%</span></div></div>
+            </div>
+            <div class="param-legend">* Flat tax 2025 : 30% (12,8% IR + 17,2% PS) • Aucun plafond légal • Source : <a href="https://www.service-public.fr" target="_blank">Service-Public.fr</a></div>
+        </div>
+
+        <div class="param-card scpi-card">
+            <h3>🏢 SCPI</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer la SCPI</label>
+                <label class="switch">
+                    <input type="checkbox" id="scpi-actif" class="auto-calc">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="scpi-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>Allocation</label>
+                        <div>
+                            <span class="allocation-value" id="scpi-alloc-display">0%</span>
+                            <span class="allocation-montant" id="scpi-montant-display">(0 €)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="scpi-alloc-slider" class="auto-calc" min="0" max="100" value="0" step="0.5">
+                </div>
+                <div class="input-group">
+                    <label>Produit SCPI
+                        <span class="tooltip-icon" data-tooltip="TOF = Taux d'Occupation Financier (100% - vacance locative). Plus il est élevé, moins de risque de loyers impayés. Les dividendes sont versés trimestriellement.">?</span>
+                    </label>
+                    <select id="scpi-produit" class="auto-calc">
+                        <option value="sofidynamic">Sofidynamic (9,52% - Élevé)</option>
+                        <option value="transitions">Transitions Europe (8,25% - Modéré-élevé)</option>
+                        <option value="remake">Remake Live (7,50% - Modéré)</option>
+                        <option value="iroko">Iroko Zen (7,32% - Modéré)</option>
+                        <option value="corum">Corum Origin (6,05% - Faible-modéré)</option>
+                        <option value="euodia">SCPI Euodia (4,50% - Modéré)</option>
+                    </select>
+                </div>
+                <div id="scpi-details" style="font-size: 0.85rem; color: #495057; margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 6px;">
+                    <strong>Sofidynamic</strong><br>
+                    Taux : 9,52% | TOF : 94,7% | Capitalisation : 85 M€<br>
+                    Zone : Europe | Risque : Élevé
+                </div>
+            </div>
+            <div class="param-legend" id="scpi-legend">* SCPI via AV • Aucun plafond • Dividendes → PEL ou AV • Source : <a href="https://placement.meilleurtaux.com/scpi/meilleures-scpi/" target="_blank">placement.meilleurtaux.com</a></div>
+        </div>
+
+        <div class="param-card immo-card" id="immo-card">
+            <h3>🏠 Immobilier LMNP</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer l'immobilier</label>
+                <label class="switch">
+                    <input type="checkbox" id="immo-actif" class="auto-calc" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="immo-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>Allocation</label>
+                        <div>
+                            <span class="allocation-value" id="immo-alloc-display">25%</span>
+                            <span class="allocation-montant" id="immo-montant-display">(57 500 €)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="immo-alloc-slider" class="auto-calc" min="0" max="100" value="25" step="0.5">
+                </div>
+                <div class="input-group"><label>Rendement locatif (brut/an)</label><div class="input-row"><input type="number" id="immo-rdt-input" class="auto-calc" value="6.0" min="0" max="15" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Plus-value annuelle</label><div class="input-row"><input type="number" id="immo-pv-input" class="auto-calc" value="2.0" min="0" max="10" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Taxe foncière (€/an)</label><div class="input-row"><input type="number" id="taxe-fonciere-input" class="auto-calc" value="300" min="0" step="0.01"><span class="unit-label">€</span></div></div>
+                <div class="input-group switch-container">
+                    <label>Vendre en année 8</label>
+                    <label class="switch">
+                        <input type="checkbox" id="vente-immo" class="auto-calc">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="param-legend">* LMNP micro-BIC : abattement 50% • Aucun plafond • PV immo : 6%/an IR (années 6-21) • Source : <a href="https://www.service-public.fr/particuliers/vosdroits/F10864" target="_blank">Impots.gouv.fr</a></div>
+        </div>
+
+        <div class="param-card actions-card">
+            <h3>📈 Allocation Actions</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer les actions</label>
+                <label class="switch">
+                    <input type="checkbox" id="actions-actif" class="auto-calc" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="actions-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>Allocation</label>
+                        <div>
+                            <span class="allocation-value" id="actions-alloc-display">30%</span>
+                            <span class="allocation-montant" id="actions-montant-display">(69 000 €)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="actions-alloc-slider" class="auto-calc" min="0" max="100" value="30" step="0.5">
+                </div>
+                <div class="input-group"><label>S&P500 (PEA)</label><div class="input-row"><input type="number" id="sp500-input" class="auto-calc" value="70" min="0" max="100" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Rendement S&P500 (brut/an)</label><div class="input-row"><input type="number" id="sp500-rdt-input" class="auto-calc" value="7.8" min="0" max="30" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Bitcoin (CTO) : <span id="bitcoin-display" style="color: #667eea; font-weight: bold;">30.00 %</span></label></div>
+                <div class="input-group"><label>Rendement Bitcoin (brut/an)</label><div class="input-row"><input type="number" id="bitcoin-rdt-input" class="auto-calc" value="29.8" min="0" max="100" step="0.01"><span class="unit-label">%</span></div></div>
+            </div>
+            <div class="param-legend">* PEA plafond : 150 000 € • Après 5 ans : PS 17,2% • CTO illimité : flat tax 30% • Source : <a href="https://www.service-public.fr/particuliers/vosdroits/F2385" target="_blank">Service-Public.fr</a></div>
+        </div>
+
+        <div class="param-card pel-card">
+            <h3>⚙️ PEL</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer le PEL</label>
+                <label class="switch">
+                    <input type="checkbox" id="pel-actif" class="auto-calc" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="pel-params">
+                <div class="input-group"><label>Taux PEL (brut/an)</label><div class="input-row"><input type="number" id="pel-taux-input" class="auto-calc" value="1.75" min="0" max="5" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Injecter PEL dans :</label>
+                    <select id="pel-injection" class="auto-calc">
+                        <option value="aucun" selected>Aucun (conserver PEL)</option>
+                        <option value="av">Assurance Vie (fin année 8)</option>
+                        <option value="lombard" id="pel-lombard-option">Remboursement Lombard</option>
+                    </select>
+                </div>
+            </div>
+            <div class="param-legend">* PEL 2025 : plafond 61 200 € • Taux 1,75% brut • Flat tax 30% sur intérêts • Source : <a href="https://www.service-public.fr/particuliers/vosdroits/F16140" target="_blank">Service-Public.fr</a></div>
+        </div>
+
+        <div class="param-card per-card">
+            <h3>🎯 PER</h3>
+            <div class="input-group switch-container" style="margin-bottom: 15px;">
+                <label style="flex: 1;">Activer le PER</label>
+                <label class="switch">
+                    <input type="checkbox" id="per-actif" class="auto-calc">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="per-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>Allocation</label>
+                        <div>
+                            <span class="allocation-value" id="per-alloc-display">5%</span>
+                            <span class="allocation-montant" id="per-montant-display">(11 500 €)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="per-alloc-slider" class="auto-calc" min="0" max="100" value="5" step="0.5">
+                </div>
+                <div class="input-group"><label>Rendement PER (brut/an)</label><div class="input-row"><input type="number" id="per-rendement-input" class="auto-calc" value="4.0" min="0" max="15" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Frais de gestion (annuels)</label><div class="input-row"><input type="number" id="per-frais-input" class="auto-calc" value="0.8" min="0" max="3" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>TMI (Tranche Marginale Impôt)</label><div class="input-row"><input type="number" id="per-tmi-input" class="auto-calc" value="30" min="0" max="45" step="1"><span class="unit-label">%</span></div></div>
+            </div>
+            <div class="param-legend">* PER 2025 : plafond ~33 000 €/an (10% revenus) • Déduction IR immédiate • Bloqué jusqu'à 62 ans • Source : <a href="https://www.service-public.fr" target="_blank">Service-Public.fr</a></div>
+        </div>
+
+        <div class="param-card lombard-card" id="lombard-card">
+            <h3>🏦 Crédit Lombard</h3>
+            <div class="input-group switch-container">
+                <label>Activer le crédit Lombard</label>
+                <label class="switch">
+                    <input type="checkbox" id="lombard-actif" class="auto-calc" disabled>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div id="lombard-warning" class="info-box" style="display: none;">
+                ⚠️ Le crédit Lombard nécessite une allocation Actions > 0
+            </div>
+            <div id="lombard-params">
+                <div class="input-group">
+                    <div class="allocation-display">
+                        <label>% à emprunter sur Actions
+                            <span class="tooltip-icon" data-tooltip="LTV (Loan-to-Value) : pourcentage de votre portefeuille Actions que vous pouvez emprunter. Ex : 50% de 100 000€ en Actions = 50 000€ empruntés. Max généralement 80%.">?</span>
+                        </label>
+                        <div>
+                            <span class="allocation-value" id="lombard-alloc-display">0%</span>
+                        </div>
+                    </div>
+                    <input type="range" id="lombard-alloc-slider" class="auto-calc" min="0" max="80" value="0" step="0.5">
+                </div>
+                <div class="info-box" style="margin-bottom: 12px;">
+                    💰 <strong>Montant emprunté :</strong> <span id="lombard-calcul-montant" style="font-weight: 700;">0 €</span><br>
+                    💳 <strong>Mensualité :</strong> <span id="lombard-mensualite" style="font-weight: 700;">0 €/mois</span><br>
+                    💸 <strong>Coût total intérêts :</strong> <span id="lombard-cout-total" style="font-weight: 700;">0 €</span>
+                </div>
+                <div class="input-group"><label>Année de contraction :</label>
+                    <select id="lombard-annee" class="auto-calc">
+                        <option value="0" selected>Année 0 (début)</option>
+                        <option value="1">Année 1</option>
+                        <option value="2">Année 2</option>
+                        <option value="3">Année 3</option>
+                        <option value="4">Année 4</option>
+                        <option value="5">Année 5</option>
+                        <option value="6">Année 6</option>
+                        <option value="7">Année 7</option>
+                        <option value="8">Année 8</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Taux Lombard (brut/an)</label><div class="input-row"><input type="number" id="lombard-taux-input" class="auto-calc" value="3.0" min="0" max="10" step="0.01"><span class="unit-label">%</span></div></div>
+                <div class="input-group"><label>Durée du crédit :</label>
+                    <select id="lombard-duree" class="auto-calc">
+                        <option value="3">3 ans</option>
+                        <option value="5" selected>5 ans</option>
+                    </select>
+                </div>
+            </div>
+            <div class="param-legend">* Crédit garanti par portefeuille Actions • Montant ajouté au capital disponible • Remboursement sur flux • Fiscalité suspendue pendant crédit</div>
+        </div>
+    </div>
+
+    <div class="results-section" id="results">
+        <h2 style="margin-bottom: 20px; color: #667eea;">📊 Résultats de la Simulation</h2>
+        <div class="summary-cards" id="summary-cards"></div>
+        <div class="chart-container"><h3>Évolution du Patrimoine Net (8 ans)</h3><canvas id="chartPatrimoine"></canvas></div>
+        <div class="chart-container"><h3>Composition du Patrimoine par Année</h3><canvas id="chartComposition"></canvas></div>
+        <div class="chart-container"><h3>Flux Financiers Annuels</h3><canvas id="chartFlux"></canvas></div>
+        <div class="chart-container">
+            <h3>📋 Tableau Détaillé</h3>
+            <div class="table-tabs">
+                <button class="table-tab active" onclick="switchTableTab('patrimoine')">💼 Patrimoine</button>
+                <button class="table-tab" onclick="switchTableTab('flux')">💸 Détails des Flux</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <div id="table-patrimoine" class="table-content active"><table id="tablePatrimoine"></table></div>
+                <div id="table-flux" class="table-content"><table id="tableFlux"></table></div>
+            </div>
+        </div>
+        <div class="recommendations" id="recommendations"></div>
+        <div class="risks" id="risks"></div>
+        <div style="margin-top: 30px;"><h3 style="margin-bottom: 15px; color: #495057;">🏆 Top 3 des Meilleures Allocations</h3><div class="allocations-grid" id="top-allocations"></div></div>
+    </div>
+</div>
+</div>
+
+<script>
+const FISCALITE = { flatTax: 0.30, flatTaxIR: 0.128, flatTaxPS: 0.172, psSeul: 0.172, lmnpAbattement: 0.50, lmnpIR: 0.30, lmnpPS: 0.172, pvImmoIR: 0.19 };
+
+const SCPI_DATA = {
+    sofidynamic: { nom: "Sofidynamic", tauxBrut: 9.52, fraisEntree: 0, fraisGestion: 10.8, tof: 94.7, capitalisation: "85 M€", zone: "Europe", risque: "Élevé", source: "placement.meilleurtaux.com", sourceUrl: "https://placement.meilleurtaux.com/scpi/meilleures-scpi/" },
+    transitions: { nom: "Transitions Europe", tauxBrut: 8.25, fraisEntree: 8.5, fraisGestion: 9.5, tof: 95.5, capitalisation: "450 M€", zone: "Europe", risque: "Modéré-élevé", source: "centraledesscpi.com", sourceUrl: "https://www.centraledesscpi.com/decouvrir-les-scpi/classement-des-scpi-2025" },
+    remake: { nom: "Remake Live", tauxBrut: 7.50, fraisEntree: 10, fraisGestion: 12, tof: 96.0, capitalisation: "125 M€", zone: "Europe", risque: "Modéré", source: "louveinvest.com", sourceUrl: "https://www.louveinvest.com/scpi/meilleures-scpi" },
+    iroko: { nom: "Iroko Zen", tauxBrut: 7.32, fraisEntree: 10, fraisGestion: 10, tof: 95.2, capitalisation: "380 M€", zone: "Europe", risque: "Modéré", source: "centraledesscpi.com", sourceUrl: "https://www.centraledesscpi.com/decouvrir-les-scpi/classement-des-scpi-2025" },
+    corum: { nom: "Corum Origin", tauxBrut: 6.05, fraisEntree: 0, fraisGestion: 10, tof: 97.0, capitalisation: "6 800 M€", zone: "Monde", risque: "Faible-modéré", source: "centraledesscpi.com", sourceUrl: "https://www.centraledesscpi.com/decouvrir-les-scpi/classement-des-scpi-2025" },
+    euodia: { nom: "SCPI Euodia", tauxBrut: 4.50, fraisEntree: 10, fraisGestion: 10, tof: 93.0, capitalisation: "N/A", zone: "Europe", risque: "Modéré", source: "centraledesscpi.com", sourceUrl: "https://www.centraledesscpi.com/decouvrir-les-scpi/classement-des-scpi-2025" }
+};
+
+const PLAFONDS = {
+    av: { limite: Infinity, nom: 'Assurance Vie', icon: '💼' },
+    pea: { limite: 150000, nom: 'PEA Classique', icon: '📈' },
+    peaPME: { limite: 225000, nom: 'PEA-PME', icon: '📈' },
+    peaTotal: { limite: 225000, nom: 'PEA + PEA-PME', icon: '📊' },
+    peaJeune: { limite: 20000, nom: 'PEA Jeune', icon: '🎓' },
+    cto: { limite: Infinity, nom: 'CTO', icon: '💹' },
+    per: { limite: 33000, nom: 'PER (annuel)', icon: '🎯' },
+    pel: { limite: 61200, nom: 'PEL', icon: '⚙️' },
+    livretA: { limite: 22950, nom: 'Livret A', icon: '🏦' },
+    ldds: { limite: 12000, nom: 'LDDS', icon: '🏦' },
+    lep: { limite: 10000, nom: 'LEP', icon: '💰' },
+    immo: { limite: Infinity, nom: 'Immobilier', icon: '🏠' },
+    scpi: { limite: Infinity, nom: 'SCPI', icon: '🏢' }
+};
+
+let currentScenario = 'ultraRealiste';
+let chartsInstances = {};
+let debounceTimer = null;
+let isCalculating = false;
+let scenarioParams = { ultraRealiste: {}, pessimiste: {}, neutre: {} };
+
+function debounce(func, delay) {
+    return function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func(), delay);
+    };
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.getElementById('dark-mode-toggle').textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem('darkMode', isDark);
+}
+
+function verifierPlafonds() {
+    const capitalTotal = parseFloat(document.getElementById('capital-total-input').value) || 0;
+    const lombardActif = document.getElementById('lombard-actif').checked;
+    const actionsAllocPct = (parseFloat(document.getElementById('actions-alloc-slider').value) || 0) / 100;
+    const lombardPct = (parseFloat(document.getElementById('lombard-alloc-slider').value) || 0) / 100;
+    const capitalLombard = lombardActif ? (capitalTotal * actionsAllocPct * lombardPct) : 0;
+    const capitalTotalAvecLombard = capitalTotal + capitalLombard;
+    
+    const warnings = {};
+    
+    // Actions (PEA)
+    if (document.getElementById('actions-actif').checked) {
+        const montantActions = capitalTotalAvecLombard * actionsAllocPct;
+        const plafondPEA = PLAFONDS.pea.limite;
+        
+        if (montantActions > plafondPEA) {
+            const montantPEA = plafondPEA;
+            const montantCTO = montantActions - plafondPEA;
+            warnings.actions = {
+                type: 'warning',
+                message: `⚠️ Dépassement PEA : ${Math.round(montantActions).toLocaleString()} €<br>→ PEA : ${montantPEA.toLocaleString()} € (plafond atteint)<br>→ CTO : ${Math.round(montantCTO).toLocaleString()} € (excédent)`,
+                pctUtilise: 100
+            };
+        } else {
+            const pctUtilise = (montantActions / plafondPEA * 100).toFixed(1);
+            if (montantActions >= plafondPEA * 0.9) {
+                warnings.actions = {
+                    type: 'alert',
+                    message: `🟠 ${pctUtilise}% du plafond PEA (${plafondPEA.toLocaleString()} €)<br>Reste : ${Math.round(plafondPEA - montantActions).toLocaleString()} €`,
+                    pctUtilise: parseFloat(pctUtilise)
+                };
+            } else {
+                warnings.actions = {
+                    type: 'ok',
+                    message: `✅ ${pctUtilise}% du plafond PEA (${plafondPEA.toLocaleString()} €)`,
+                    pctUtilise: parseFloat(pctUtilise)
+                };
+            }
+        }
+    }
+    
+    // PER
+    if (document.getElementById('per-actif').checked) {
+        const perAlloc = (parseFloat(document.getElementById('per-alloc-slider').value) || 0) / 100;
+        const montantPER = capitalTotalAvecLombard * perAlloc;
+        const versementAnnuel = montantPER / 8;
+        const plafondPER = PLAFONDS.per.limite;
+        
+        if (versementAnnuel > plafondPER) {
+            warnings.per = {
+                type: 'error',
+                message: `❌ Versement annuel : ${Math.round(versementAnnuel).toLocaleString()} €<br>Plafond PER : ${plafondPER.toLocaleString()} €/an<br>⚠️ Dépassement de ${Math.round(versementAnnuel - plafondPER).toLocaleString()} €`,
+                pctUtilise: (versementAnnuel / plafondPER * 100).toFixed(1)
+            };
+        } else {
+            const pctUtilise = (versementAnnuel / plafondPER * 100).toFixed(1);
+            warnings.per = {
+                type: 'ok',
+                message: `✅ Versement annuel : ${Math.round(versementAnnuel).toLocaleString()} €<br>${pctUtilise}% du plafond (${plafondPER.toLocaleString()} €/an)`,
+                pctUtilise: parseFloat(pctUtilise)
+            };
+        }
+    }
+    
+    // AV
+    if (document.getElementById('av-actif').checked) {
+        warnings.av = {
+            type: 'ok',
+            message: '✅ Aucun plafond légal',
+            pctUtilise: 0
+        };
+    }
+    
+    afficherWarningsPlafonds(warnings);
+}
+
+function afficherWarningsPlafonds(warnings) {
+    // Actions
+    if (warnings.actions) {
+        let warningHTML = `<div class="plafond-warning ${warnings.actions.type}" style="margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4;">
+            ${warnings.actions.message}
+        </div>`;
+        
+        const actionsCard = document.querySelector('.actions-card #actions-params');
+        const existingWarning = actionsCard.querySelector('.plafond-warning');
+        if (existingWarning) existingWarning.remove();
+        actionsCard.insertAdjacentHTML('beforeend', warningHTML);
+    }
+    
+    // PER
+    if (warnings.per) {
+        let warningHTML = `<div class="plafond-warning ${warnings.per.type}" style="margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4;">
+            ${warnings.per.message}
+        </div>`;
+        
+        const perCard = document.querySelector('.per-card #per-params');
+        const existingWarning = perCard.querySelector('.plafond-warning');
+        if (existingWarning) existingWarning.remove();
+        perCard.insertAdjacentHTML('beforeend', warningHTML);
+    }
+    
+    // AV
+    if (warnings.av) {
+        let warningHTML = `<div class="plafond-warning ${warnings.av.type}" style="margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4;">
+            ${warnings.av.message}
+        </div>`;
+        
+        const avCard = document.querySelector('.av-card #av-params');
+        const existingWarning = avCard.querySelector('.plafond-warning');
+        if (existingWarning) existingWarning.remove();
+        avCard.insertAdjacentHTML('beforeend', warningHTML);
+    }
+}
+
+function updateLombardAvailability() {
+    const actionsActif = document.getElementById('actions-actif').checked;
+    const lombardCheckbox = document.getElementById('lombard-actif');
+    const lombardWarning = document.getElementById('lombard-warning');
+    
+    if (actionsActif) {
+        lombardCheckbox.disabled = false;
+        lombardWarning.style.display = 'none';
+    } else {
+        lombardCheckbox.disabled = true;
+        lombardWarning.style.display = 'block';
+        
+        if (lombardCheckbox.checked) {
+            lombardCheckbox.checked = false;
+            toggleLombardCard();
+        }
+    }
+    
+    updateLombardCalculs();
+}
+
+function updateLombardCalculs() {
+    const capitalTotal = parseFloat(document.getElementById('capital-total-input').value) || 0;
+    const actionsAlloc = (parseFloat(document.getElementById('actions-alloc-slider').value) || 0) / 100;
+    const lombardPct = (parseFloat(document.getElementById('lombard-alloc-slider').value) || 0) / 100;
+    const lombardTaux = (parseFloat(document.getElementById('lombard-taux-input').value) || 0) / 100;
+    const lombardDuree = parseInt(document.getElementById('lombard-duree').value) || 5;
+    const lombardAnnee = parseInt(document.getElementById('lombard-annee').value) || 0;
+    
+    const portefeuilleActions = capitalTotal * actionsAlloc;
+    const montantEmprunte = portefeuilleActions * lombardPct;
+    const remboursementAnnuel = montantEmprunte / lombardDuree;
+    
+    let coutTotalInterets = 0;
+    let detteRestante = montantEmprunte;
+    for (let i = 0; i < lombardDuree; i++) {
+        coutTotalInterets += detteRestante * lombardTaux;
+        detteRestante -= remboursementAnnuel;
+    }
+    
+    const mensualite = (remboursementAnnuel + (coutTotalInterets / lombardDuree)) / 12;
+    
+    document.getElementById('lombard-calcul-montant').textContent = Math.round(montantEmprunte).toLocaleString() + ' €';
+    document.getElementById('lombard-mensualite').textContent = Math.round(mensualite).toLocaleString() + ' €/mois';
+    document.getElementById('lombard-cout-total').textContent = Math.round(coutTotalInterets).toLocaleString() + ' €';
+    
+    const lombardActif = document.getElementById('lombard-actif').checked;
+    const lombardDisplay = document.getElementById('lombard-display');
+    const capitalAvecLombard = document.getElementById('capital-avec-lombard');
+    const lombardMontantDisplay = document.getElementById('lombard-montant-display');
+    const lombardAnneeDisplay = document.getElementById('lombard-annee-display');
+    
+    if (lombardActif && montantEmprunte > 0) {
+        lombardDisplay.style.display = 'block';
+        lombardMontantDisplay.textContent = Math.round(montantEmprunte).toLocaleString() + ' €';
+        lombardAnneeDisplay.textContent = lombardAnnee;
+        capitalAvecLombard.textContent = (capitalTotal + montantEmprunte).toLocaleString() + ' €';
+    } else {
+        lombardDisplay.style.display = 'none';
+        capitalAvecLombard.textContent = capitalTotal.toLocaleString() + ' €';
+    }
+    
+    updateAllocationDisplays();
+}
+
+function sauvegarderScenario() {
+    scenarioParams[currentScenario] = {
+        capitalTotal: document.getElementById('capital-total-input').value,
+        inflationActif: document.getElementById('inflation-actif').checked,
+        inflationTaux: document.getElementById('inflation-taux-input').value,
+        avActif: document.getElementById('av-actif').checked,
+        avAlloc: document.getElementById('av-alloc-slider').value,
+        avRendement: document.getElementById('av-rendement-input').value,
+        rente: document.getElementById('rente-input').value,
+        avFrais: document.getElementById('av-frais-input').value,
+        avFraisGestion: document.getElementById('av-frais-gestion-input').value,
+        scpiActif: document.getElementById('scpi-actif').checked,
+        scpiAlloc: document.getElementById('scpi-alloc-slider').value,
+        scpiProduit: document.getElementById('scpi-produit').value,
+        immoActif: document.getElementById('immo-actif').checked,
+        immoAlloc: document.getElementById('immo-alloc-slider').value,
+        immoRdt: document.getElementById('immo-rdt-input').value,
+        immoPV: document.getElementById('immo-pv-input').value,
+        taxeFonciere: document.getElementById('taxe-fonciere-input').value,
+        venteImmo: document.getElementById('vente-immo').checked,
+        actionsActif: document.getElementById('actions-actif').checked,
+        actionsAlloc: document.getElementById('actions-alloc-slider').value,
+        sp500: document.getElementById('sp500-input').value,
+        sp500Rdt: document.getElementById('sp500-rdt-input').value,
+        bitcoinRdt: document.getElementById('bitcoin-rdt-input').value,
+        lombardActif: document.getElementById('lombard-actif').checked,
+        lombardAlloc: document.getElementById('lombard-alloc-slider').value,
+        lombardAnnee: document.getElementById('lombard-annee').value,
+        lombardTaux: document.getElementById('lombard-taux-input').value,
+        lombardDuree: document.getElementById('lombard-duree').value,
+        pelActif: document.getElementById('pel-actif').checked,
+        pelTaux: document.getElementById('pel-taux-input').value,
+        pelInjection: document.getElementById('pel-injection').value,
+        perActif: document.getElementById('per-actif').checked,
+        perAlloc: document.getElementById('per-alloc-slider').value,
+        perRendement: document.getElementById('per-rendement-input').value,
+        perFrais: document.getElementById('per-frais-input').value,
+        perTMI: document.getElementById('per-tmi-input').value
+    };
+}
+
+function chargerScenario(scenario) {
+    if (scenarioParams[scenario] && Object.keys(scenarioParams[scenario]).length > 0) {
+        const p = scenarioParams[scenario];
+        document.getElementById('capital-total-input').value = p.capitalTotal;
+        document.getElementById('inflation-actif').checked = p.inflationActif;
+        document.getElementById('inflation-taux-input').value = p.inflationTaux;
+        document.getElementById('av-actif').checked = p.avActif;
+        document.getElementById('av-alloc-slider').value = p.avAlloc;
+        document.getElementById('av-rendement-input').value = p.avRendement;
+        document.getElementById('rente-input').value = p.rente;
+        document.getElementById('av-frais-input').value = p.avFrais;
+        document.getElementById('av-frais-gestion-input').value = p.avFraisGestion;
+        document.getElementById('scpi-actif').checked = p.scpiActif;
+        document.getElementById('scpi-alloc-slider').value = p.scpiAlloc;
+        document.getElementById('scpi-produit').value = p.scpiProduit;
+        document.getElementById('immo-actif').checked = p.immoActif;
+        document.getElementById('immo-alloc-slider').value = p.immoAlloc;
+        document.getElementById('immo-rdt-input').value = p.immoRdt;
+        document.getElementById('immo-pv-input').value = p.immoPV;
+        document.getElementById('taxe-fonciere-input').value = p.taxeFonciere;
+        document.getElementById('vente-immo').checked = p.venteImmo;
+        document.getElementById('actions-actif').checked = p.actionsActif;
+        document.getElementById('actions-alloc-slider').value = p.actionsAlloc;
+        document.getElementById('sp500-input').value = p.sp500;
+        document.getElementById('sp500-rdt-input').value = p.sp500Rdt;
+        document.getElementById('bitcoin-rdt-input').value = p.bitcoinRdt;
+        document.getElementById('lombard-actif').checked = p.lombardActif;
+        document.getElementById('lombard-alloc-slider').value = p.lombardAlloc;
+        document.getElementById('lombard-annee').value = p.lombardAnnee;
+        document.getElementById('lombard-taux-input').value = p.lombardTaux;
+        document.getElementById('lombard-duree').value = p.lombardDuree;
+        document.getElementById('pel-actif').checked = p.pelActif;
+        document.getElementById('pel-taux-input').value = p.pelTaux;
+        document.getElementById('pel-injection').value = p.pelInjection;
+        document.getElementById('per-actif').checked = p.perActif;
+        document.getElementById('per-alloc-slider').value = p.perAlloc;
+        document.getElementById('per-rendement-input').value = p.perRendement;
+        document.getElementById('per-frais-input').value = p.perFrais;
+        document.getElementById('per-tmi-input').value = p.perTMI;
+        
+        updateBitcoin();
+        updateSCPIDetails();
+        toggleInflationCard();
+        toggleAVCard();
+        toggleSCPICard();
+        toggleImmoCard();
+        toggleActionsCard();
+        updateLombardAvailability();
+        toggleLombardCard();
+        togglePELCard();
+        togglePERCard();
+        updateAllocationDisplays();
+    }
+}
+
+function toggleInflationCard() {
+    const actif = document.getElementById('inflation-actif').checked;
+    document.getElementById('inflation-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('inflation-params').style.pointerEvents = actif ? 'auto' : 'none';
+}
+
+function updateAllocationDisplays() {
+    const capitalTotal = parseFloat(document.getElementById('capital-total-input').value) || 0;
+    const lombardActif = document.getElementById('lombard-actif').checked;
+    const actionsAllocPct = (parseFloat(document.getElementById('actions-alloc-slider').value) || 0) / 100;
+    const lombardPct = (parseFloat(document.getElementById('lombard-alloc-slider').value) || 0) / 100;
+    
+    const capitalLombard = lombardActif ? (capitalTotal * actionsAllocPct * lombardPct) : 0;
+    const capitalTotalAvecLombard = capitalTotal + capitalLombard;
+    
+    const avActif = document.getElementById('av-actif').checked;
+    const scpiActif = document.getElementById('scpi-actif').checked;
+    const immoActif = document.getElementById('immo-actif').checked;
+    const actionsActif = document.getElementById('actions-actif').checked;
+    const perActif = document.getElementById('per-actif').checked;
+    
+    const avAlloc = avActif ? parseFloat(document.getElementById('av-alloc-slider').value) : 0;
+    const scpiAlloc = scpiActif ? parseFloat(document.getElementById('scpi-alloc-slider').value) : 0;
+    const immoAlloc = immoActif ? parseFloat(document.getElementById('immo-alloc-slider').value) : 0;
+    const actionsAlloc = actionsActif ? parseFloat(document.getElementById('actions-alloc-slider').value) : 0;
+    const perAlloc = perActif ? parseFloat(document.getElementById('per-alloc-slider').value) : 0;
+    
+    const totalAlloc = avAlloc + scpiAlloc + immoAlloc + actionsAlloc + perAlloc;
+    
+    const avSlider = document.getElementById('av-alloc-slider');
+    const scpiSlider = document.getElementById('scpi-alloc-slider');
+    const immoSlider = document.getElementById('immo-alloc-slider');
+    const actionsSlider = document.getElementById('actions-alloc-slider');
+    const perSlider = document.getElementById('per-alloc-slider');
+    
+    const resteDisponible = 100 - totalAlloc;
+    
+    if (avActif) avSlider.max = Math.min(100, avAlloc + resteDisponible);
+    else avSlider.max = 100;
+    
+    if (scpiActif) scpiSlider.max = Math.min(100, scpiAlloc + resteDisponible);
+    else scpiSlider.max = 100;
+    
+    if (immoActif) immoSlider.max = Math.min(100, immoAlloc + resteDisponible);
+    else immoSlider.max = 100;
+    
+    if (actionsActif) actionsSlider.max = Math.min(100, actionsAlloc + resteDisponible);
+    else actionsSlider.max = 100;
+    
+    if (perActif) perSlider.max = Math.min(100, perAlloc + resteDisponible);
+    else perSlider.max = 100;
+    
+    document.getElementById('av-alloc-display').textContent = avAlloc.toFixed(1) + '%';
+    document.getElementById('av-montant-display').textContent = `(${Math.round(capitalTotalAvecLombard * avAlloc / 100).toLocaleString()} €)`;
+    
+    document.getElementById('scpi-alloc-display').textContent = scpiAlloc.toFixed(1) + '%';
+    document.getElementById('scpi-montant-display').textContent = `(${Math.round(capitalTotalAvecLombard * scpiAlloc / 100).toLocaleString()} €)`;
+    
+    document.getElementById('immo-alloc-display').textContent = immoAlloc.toFixed(1) + '%';
+    document.getElementById('immo-montant-display').textContent = `(${Math.round(capitalTotalAvecLombard * immoAlloc / 100).toLocaleString()} €)`;
+    
+    document.getElementById('actions-alloc-display').textContent = actionsAlloc.toFixed(1) + '%';
+    document.getElementById('actions-montant-display').textContent = `(${Math.round(capitalTotalAvecLombard * actionsAlloc / 100).toLocaleString()} €)`;
+    
+    document.getElementById('lombard-alloc-display').textContent = (lombardPct * 100).toFixed(1) + '%';
+    
+    document.getElementById('per-alloc-display').textContent = perAlloc.toFixed(1) + '%';
+    document.getElementById('per-montant-display').textContent = `(${Math.round(capitalTotalAvecLombard * perAlloc / 100).toLocaleString()} €)`;
+    
+    const capitalAlloue = Math.round(capitalTotalAvecLombard * totalAlloc / 100);
+    const capitalDisponible = capitalTotalAvecLombard - capitalAlloue;
+    
+    document.getElementById('capital-alloue').textContent = capitalAlloue.toLocaleString() + ' €';
+    document.getElementById('capital-disponible').textContent = capitalDisponible.toLocaleString() + ' €';
+    
+    const statusDiv = document.getElementById('allocation-status');
+    if (totalAlloc === 100) {
+        statusDiv.className = 'allocation-badge success';
+        statusDiv.textContent = `✓ Allocation : ${totalAlloc.toFixed(1)}%`;
+    } else if (totalAlloc < 100) {
+        statusDiv.className = 'allocation-badge warning';
+        statusDiv.textContent = `⚠️ Il reste ${(100 - totalAlloc).toFixed(1)}% à allouer`;
+    } else {
+        statusDiv.className = 'allocation-badge error';
+        statusDiv.textContent = `❌ Allocation dépasse de ${(totalAlloc - 100).toFixed(1)}%`;
+    }
+    
+    verifierPlafonds();
+}
+
+function updateSCPIDetails() {
+    const produit = document.getElementById('scpi-produit').value;
+    const scpi = SCPI_DATA[produit];
+    document.getElementById('scpi-details').innerHTML = `<strong>${scpi.nom}</strong><br>Taux : ${scpi.tauxBrut}% | TOF : ${scpi.tof}% | Cap : ${scpi.capitalisation}<br>Zone : ${scpi.zone} | Risque : ${scpi.risque}`;
+    document.getElementById('scpi-legend').innerHTML = `* SCPI via AV • Aucun plafond • Dividendes → PEL ou AV • Source : <a href="${scpi.sourceUrl}" target="_blank">${scpi.source}</a>`;
+}
+
+function updateBitcoin() {
+    const sp500 = parseFloat(document.getElementById('sp500-input').value) || 0;
+    document.getElementById('bitcoin-display').textContent = (100 - sp500).toFixed(2) + ' %';
+}
+
+function toggleAVCard() {
+    const actif = document.getElementById('av-actif').checked;
+    document.getElementById('av-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('av-params').style.pointerEvents = actif ? 'auto' : 'none';
+    if (!actif) document.getElementById('av-alloc-slider').value = 0;
+    updateAllocationDisplays();
+}
+
+function toggleSCPICard() {
+    const actif = document.getElementById('scpi-actif').checked;
+    document.getElementById('scpi-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('scpi-params').style.pointerEvents = actif ? 'auto' : 'none';
+    if (!actif) document.getElementById('scpi-alloc-slider').value = 0;
+    updateAllocationDisplays();
+}
+
+function toggleImmoCard() {
+    const actif = document.getElementById('immo-actif').checked;
+    document.getElementById('immo-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('immo-params').style.pointerEvents = actif ? 'auto' : 'none';
+    if (!actif) document.getElementById('immo-alloc-slider').value = 0;
+    updateAllocationDisplays();
+}
+
+function toggleActionsCard() {
+    const actif = document.getElementById('actions-actif').checked;
+    document.getElementById('actions-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('actions-params').style.pointerEvents = actif ? 'auto' : 'none';
+    if (!actif) document.getElementById('actions-alloc-slider').value = 0;
+    updateAllocationDisplays();
+    updateLombardAvailability();
+}
+
+function toggleLombardCard() {
+    const actif = document.getElementById('lombard-actif').checked;
+    document.getElementById('lombard-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('lombard-params').style.pointerEvents = actif ? 'auto' : 'none';
+    document.getElementById('pel-lombard-option').disabled = !actif;
+    if (!actif && document.getElementById('pel-injection').value === 'lombard') {
+        document.getElementById('pel-injection').value = 'aucun';
+    }
+    updateLombardCalculs();
+}
+
+function togglePELCard() {
+    const actif = document.getElementById('pel-actif').checked;
+    document.getElementById('pel-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('pel-params').style.pointerEvents = actif ? 'auto' : 'none';
+}
+
+function togglePERCard() {
+    const actif = document.getElementById('per-actif').checked;
+    document.getElementById('per-params').style.opacity = actif ? '1' : '0.5';
+    document.getElementById('per-params').style.pointerEvents = actif ? 'auto' : 'none';
+    if (!actif) document.getElementById('per-alloc-slider').value = 0;
+    updateAllocationDisplays();
+}
+
+function switchTableTab(tabName) {
+    document.querySelectorAll('.table-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.table-content').forEach(content => content.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('table-' + tabName).classList.add('active');
+}
+
+function calculerAbattementsPV(annees) {
+    if (annees <= 5) return { ir: 0, ps: 0 };
+    else if (annees <= 21) return { ir: (annees - 5) * 0.06, ps: (annees - 5) * 0.0165 };
+    else if (annees === 22) return { ir: 1.0, ps: 0.28 };
+    else if (annees <= 30) return { ir: 1.0, ps: Math.min(0.28 + ((annees - 22) * 0.09), 1.0) };
+    else return { ir: 1.0, ps: 1.0 };
+}
+
+function calculerDureeRenteViagere(capital, renteAnnuelle, tauxRendement, tauxFraisGestion) {
+    if (capital <= 0 || renteAnnuelle <= 0) return { ans: 0, mois: 0 };
+    const tauxNet = tauxRendement - tauxFraisGestion;
+    if (tauxNet <= 0.001) {
+        const dureeAns = capital / renteAnnuelle;
+        return { ans: Math.floor(dureeAns), mois: Math.floor((dureeAns % 1) * 12) };
+    }
+    const interetsAnnuels = capital * tauxNet;
+    if (interetsAnnuels >= renteAnnuelle) return { ans: 999, mois: 0 };
+    const dureeAns = -Math.log(1 - (tauxNet * capital) / renteAnnuelle) / Math.log(1 + tauxNet);
+    return { ans: Math.floor(dureeAns), mois: Math.floor((dureeAns % 1) * 12) };
+}
+
+function calculerSimulation() {
+    if (isCalculating) return;
+    isCalculating = true;
+    document.getElementById('loader').classList.add('active');
+    
+    setTimeout(() => {
+        try {
+            const capitalInitial = parseFloat(document.getElementById('capital-total-input').value) || 0;
+            const inflationActif = document.getElementById('inflation-actif').checked;
+            const inflationTaux = (parseFloat(document.getElementById('inflation-taux-input').value) || 0) / 100;
+            
+            const lombardActif = document.getElementById('lombard-actif').checked;
+            const actionsAllocPct = document.getElementById('actions-actif').checked ? parseFloat(document.getElementById('actions-alloc-slider').value) / 100 : 0;
+            const lombardPct = lombardActif ? parseFloat(document.getElementById('lombard-alloc-slider').value) / 100 : 0;
+            const capitalLombard = lombardActif ? (capitalInitial * actionsAllocPct * lombardPct) : 0;
+            
+            const capitalTotal = capitalInitial + capitalLombard;
+            
+            const params = {
+                capitalInitial,
+                capitalTotal,
+                capitalLombard,
+                inflationActif,
+                inflationTaux,
+                avActif: document.getElementById('av-actif').checked,
+                avAlloc: document.getElementById('av-actif').checked ? parseFloat(document.getElementById('av-alloc-slider').value) / 100 : 0,
+                avRendement: (parseFloat(document.getElementById('av-rendement-input').value) || 0) / 100,
+                rente: parseFloat(document.getElementById('rente-input').value) || 0,
+                avFrais: (parseFloat(document.getElementById('av-frais-input').value) || 0) / 100,
+                avFraisGestion: (parseFloat(document.getElementById('av-frais-gestion-input').value) || 0) / 100,
+                scpiActif: document.getElementById('scpi-actif').checked,
+                scpiAlloc: document.getElementById('scpi-actif').checked ? parseFloat(document.getElementById('scpi-alloc-slider').value) / 100 : 0,
+                scpiProduit: document.getElementById('scpi-produit').value,
+                immoActif: document.getElementById('immo-actif').checked,
+                immoAlloc: document.getElementById('immo-actif').checked ? parseFloat(document.getElementById('immo-alloc-slider').value) / 100 : 0,
+                immoRendement: (parseFloat(document.getElementById('immo-rdt-input').value) || 0) / 100,
+                immoPlusValue: (parseFloat(document.getElementById('immo-pv-input').value) || 0) / 100,
+                taxeFonciere: parseFloat(document.getElementById('taxe-fonciere-input').value) || 0,
+                venteImmo: document.getElementById('vente-immo').checked,
+                actionsActif: document.getElementById('actions-actif').checked,
+                actionsAlloc: document.getElementById('actions-actif').checked ? parseFloat(document.getElementById('actions-alloc-slider').value) / 100 : 0,
+                sp500Pct: (parseFloat(document.getElementById('sp500-input').value) || 0) / 100,
+                bitcoinPct: (100 - (parseFloat(document.getElementById('sp500-input').value) || 0)) / 100,
+                sp500Rendement: (parseFloat(document.getElementById('sp500-rdt-input').value) || 0) / 100,
+                bitcoinRendement: (parseFloat(document.getElementById('bitcoin-rdt-input').value) || 0) / 100,
+                lombardActif: lombardActif,
+                lombardAlloc: lombardPct,
+                lombardAnnee: parseInt(document.getElementById('lombard-annee').value) || 0,
+                lombardTaux: (parseFloat(document.getElementById('lombard-taux-input').value) || 0) / 100,
+                lombardDuree: parseInt(document.getElementById('lombard-duree').value) || 5,
+                pelActif: document.getElementById('pel-actif').checked,
+                pelTaux: (parseFloat(document.getElementById('pel-taux-input').value) || 0) / 100,
+                pelInjection: document.getElementById('pel-injection').value,
+                perActif: document.getElementById('per-actif').checked,
+                perAlloc: document.getElementById('per-actif').checked ? parseFloat(document.getElementById('per-alloc-slider').value) / 100 : 0,
+                perRendement: (parseFloat(document.getElementById('per-rendement-input').value) || 0) / 100,
+                perFrais: (parseFloat(document.getElementById('per-frais-input').value) || 0) / 100,
+                perTMI: (parseFloat(document.getElementById('per-tmi-input').value) || 0) / 100
+            };
+
+            const scpiData = SCPI_DATA[params.scpiProduit];
+            
+            let avCapital = params.avActif ? (capitalTotal * params.avAlloc * (1 - params.avFrais)) : 0;
+            let scpiCapital = params.scpiActif ? (capitalTotal * params.scpiAlloc * (1 - scpiData.fraisEntree / 100) * (1 - params.avFrais)) : 0;
+            let immoValeur = params.immoActif ? (capitalTotal * params.immoAlloc) : 0;
+            let sp500 = params.actionsActif ? (capitalTotal * params.actionsAlloc * params.sp500Pct) : 0;
+            let bitcoin = params.actionsActif ? (capitalTotal * params.actionsAlloc * params.bitcoinPct) : 0;
+            let pelSolde = 0;
+            let perSolde = 0;
+            let detteLombard = 0;
+            let interetsLombardCumules = 0;
+            let rentesCumulees = 0;
+            let rentesCumuleesNettes = 0;
+            let fiscaliteCumulee = 0;
+            let dividendesSCPICumules = 0;
+            let economiesIRPER = 0;
+            let montantLombardEmprunte = 0;
+            let renteStoppeeAnnee = null;
+            
+            const resultatsAnnuels = [];
+            const detailsFlux = [];
+            const DUREE = 8;
+
+            for (let annee = 0; annee <= DUREE; annee++) {
+                if (params.lombardActif && annee === params.lombardAnnee && detteLombard === 0) {
+                    detteLombard = params.capitalLombard;
+                    montantLombardEmprunte = detteLombard;
+                }
+
+                const interetsAVBruts = params.avActif ? (avCapital * params.avRendement) : 0;
+                const fraisGestionAV = params.avActif ? (avCapital * params.avFraisGestion) : 0;
+                const interetsAVNets = interetsAVBruts - fraisGestionAV;
+                
+                const renteAnnuelle = params.rente * 12;
+                let renteEffective = 0;
+                let quotiteInterets = 0;
+                let fiscaliteRente = 0;
+                
+                if (params.avActif && renteStoppeeAnnee === null && avCapital > 0) {
+                    if (avCapital >= renteAnnuelle) {
+                        renteEffective = renteAnnuelle;
+                        const totalAV = avCapital + interetsAVNets;
+                        const quotiteCapital = totalAV > 0 ? (renteAnnuelle * (avCapital / totalAV)) : 0;
+                        quotiteInterets = renteAnnuelle - quotiteCapital;
+                    } else {
+                        renteEffective = avCapital;
+                        quotiteInterets = 0;
+                        renteStoppeeAnnee = annee;
+                    }
+                }
+                
+                const anneesDepuisLombard = annee - params.lombardAnnee;
+                const lombardEnCours = params.lombardActif && annee >= params.lombardAnnee && anneesDepuisLombard < params.lombardDuree;
+                
+                if (!lombardEnCours && quotiteInterets > 0) {
+                    fiscaliteRente = quotiteInterets * FISCALITE.flatTax;
+                }
+                
+                if (params.avActif) {
+                    avCapital = Math.max(0, avCapital + interetsAVNets - renteEffective);
+                }
+                rentesCumulees += renteEffective;
+                rentesCumuleesNettes += (renteEffective - fiscaliteRente);
+                fiscaliteCumulee += fiscaliteRente;
+
+                const dividendesSCPIBruts = params.scpiActif && annee > 0 ? (scpiCapital * scpiData.tauxBrut / 100) : 0;
+                const fraisGestionSCPI = params.scpiActif ? (scpiCapital * scpiData.fraisGestion / 100) : 0;
+                const dividendesSCPINets = Math.max(0, dividendesSCPIBruts - fraisGestionSCPI);
+                let fiscaliteSCPI = 0;
+                
+                if (!lombardEnCours && dividendesSCPINets > 0) {
+                    fiscaliteSCPI = dividendesSCPINets * FISCALITE.flatTax;
+                }
+                
+                const dividendesSCPIApresImpot = dividendesSCPINets - fiscaliteSCPI;
+                dividendesSCPICumules += dividendesSCPIApresImpot;
+                fiscaliteCumulee += fiscaliteSCPI;
+
+                const loyersAnnuelsBruts = params.immoActif ? (immoValeur * (annee === 0 ? 0 : params.immoRendement)) : 0;
+                const loyersImposables = loyersAnnuelsBruts * (1 - FISCALITE.lmnpAbattement);
+                const fiscaliteImmo = loyersImposables * (FISCALITE.lmnpIR + FISCALITE.lmnpPS);
+                const loyersNets = Math.max(0, loyersAnnuelsBruts - params.taxeFonciere - fiscaliteImmo);
+                
+                if (params.immoActif) {
+                    immoValeur *= (1 + params.immoPlusValue);
+                }
+                fiscaliteCumulee += fiscaliteImmo;
+
+                let remboursementLombard = 0;
+                let interetsLombard = 0;
+                
+                if (lombardEnCours && detteLombard > 0) {
+                    interetsLombard = detteLombard * params.lombardTaux;
+                    interetsLombardCumules += interetsLombard;
+                    
+                    let disponible = loyersNets + dividendesSCPIApresImpot;
+                    if (params.pelInjection === 'lombard' && pelSolde > 0 && params.pelActif) {
+                        disponible += pelSolde;
+                        pelSolde = 0;
+                    }
+                    
+                    const remboursementCapital = montantLombardEmprunte / params.lombardDuree;
+                    const totalAnnuel = remboursementCapital + interetsLombard;
+                    
+                    if (disponible >= totalAnnuel) {
+                        remboursementLombard = remboursementCapital;
+                        detteLombard = Math.max(0, detteLombard - remboursementCapital);
+                        const versementPEL = disponible - totalAnnuel;
+                        if (versementPEL > 0 && params.pelActif) {
+                            pelSolde += versementPEL;
+                        } else if (!params.pelActif && versementPEL > 0 && params.avActif) {
+                            avCapital += versementPEL;
+                        }
+                    } else if (disponible >= interetsLombard) {
+                        const montantPourRemboursement = disponible - interetsLombard;
+                        remboursementLombard = montantPourRemboursement;
+                        detteLombard = Math.max(0, detteLombard - montantPourRemboursement);
+                    } else {
+                                                const interetsNonPayes = interetsLombard - disponible;
+                        detteLombard += interetsNonPayes;
+                        remboursementLombard = 0;
+                    }
+                } else {
+                    const fluxDisponibles = loyersNets + dividendesSCPIApresImpot;
+                    if (params.pelActif) {
+                        pelSolde += fluxDisponibles;
+                    } else if (params.avActif) {
+                        avCapital += fluxDisponibles;
+                    }
+                }
+
+                if (params.pelActif) {
+                    const interetsPEL = pelSolde * params.pelTaux;
+                    const fiscalitePEL = interetsPEL * FISCALITE.flatTax;
+                    pelSolde += interetsPEL - fiscalitePEL;
+                    fiscaliteCumulee += fiscalitePEL;
+                }
+
+                if (params.perActif && annee > 0) {
+                    const versementPER = capitalTotal * params.perAlloc / DUREE;
+                    const economieIR = versementPER * params.perTMI;
+                    economiesIRPER += economieIR;
+                    
+                    const interetsPERBruts = perSolde * params.perRendement;
+                    const fraisGestionPER = perSolde * params.perFrais;
+                    const interetsPERNets = interetsPERBruts - fraisGestionPER;
+                    
+                    perSolde += versementPER + interetsPERNets;
+                }
+
+                const rendementSP500 = params.actionsActif ? (sp500 * params.sp500Rendement) : 0;
+                sp500 += rendementSP500;
+                const rendementBitcoin = params.actionsActif ? (bitcoin * params.bitcoinRendement) : 0;
+                bitcoin += rendementBitcoin;
+
+                if (annee === DUREE && params.pelInjection === 'av' && pelSolde > 0 && params.pelActif && params.avActif) {
+                    const pelNetFrais = pelSolde * (1 - params.avFrais);
+                    avCapital += pelNetFrais;
+                    pelSolde = 0;
+                }
+
+                const patrimoineGlobal = avCapital + scpiCapital + immoValeur + sp500 + bitcoin + pelSolde + perSolde;
+                const patrimoineNet = patrimoineGlobal - detteLombard;
+                
+                resultatsAnnuels.push({
+                    annee, avCapital: Math.round(avCapital), scpiCapital: Math.round(scpiCapital), immoValeur: Math.round(immoValeur),
+                    sp500: Math.round(sp500), bitcoin: Math.round(bitcoin), pelSolde: Math.round(pelSolde),
+                    perSolde: Math.round(perSolde),
+                    detteLombard: Math.round(detteLombard), patrimoineGlobal: Math.round(patrimoineGlobal),
+                    patrimoineNet: Math.round(patrimoineNet), loyersNets: Math.round(loyersNets),
+                    dividendesSCPI: Math.round(dividendesSCPIApresImpot),
+                    interetsLombard: Math.round(interetsLombard), fiscaliteAnnee: Math.round(fiscaliteRente + fiscaliteImmo + fiscaliteSCPI),
+                    renteAnnuelle: Math.round(renteEffective), remboursementLombard: Math.round(remboursementLombard)
+                });
+                
+                detailsFlux.push({
+                    annee, loyersBruts: Math.round(loyersAnnuelsBruts), impotsLMNP: Math.round(fiscaliteImmo),
+                    taxeFonciere: Math.round(params.taxeFonciere), loyersVersPEL: Math.round(loyersNets),
+                    dividendesSCPI: Math.round(dividendesSCPIBruts), fraisGestionSCPI: Math.round(fraisGestionSCPI),
+                    flatTaxSCPI: Math.round(fiscaliteSCPI),
+                    interetsAV: Math.round(interetsAVNets), fraisGestionAV: Math.round(fraisGestionAV),
+                    rentesAV: Math.round(renteEffective), flatTaxAV: Math.round(fiscaliteRente),
+                    gainsSP500: Math.round(rendementSP500),
+                    gainsBitcoin: Math.round(rendementBitcoin),
+                    flatTaxBTC: params.bitcoinPct > 0 ? Math.round(rendementBitcoin * FISCALITE.flatTax) : 0,
+                    interetsLombard: Math.round(interetsLombard),
+                    remboursementLombard: Math.round(remboursementLombard)
+                });
+            }
+
+            const dernierResultat = resultatsAnnuels[DUREE];
+            let immoFinal = dernierResultat.immoValeur;
+            let fiscalitePVImmo = 0;
+            
+            if (params.venteImmo && params.immoActif) {
+                const prixAchat = capitalTotal * params.immoAlloc;
+                const prixVente = dernierResultat.immoValeur;
+                const plusValueBrute = Math.max(0, prixVente - prixAchat);
+                const abattements = calculerAbattementsPV(DUREE);
+                const pvImposableIR = plusValueBrute * (1 - abattements.ir);
+                const pvImposablePS = plusValueBrute * (1 - abattements.ps);
+                const impotPV = pvImposableIR * FISCALITE.pvImmoIR;
+                const psPV = pvImposablePS * FISCALITE.psSeul;
+                fiscalitePVImmo = impotPV + psPV;
+                immoFinal = prixVente - fiscalitePVImmo;
+                fiscaliteCumulee += fiscalitePVImmo;
+            }
+
+            const plusValueSP500 = params.actionsActif ? Math.max(0, dernierResultat.sp500 - (capitalTotal * params.actionsAlloc * params.sp500Pct)) : 0;
+            const fiscaliteSP500 = plusValueSP500 * FISCALITE.psSeul;
+            const plusValueBitcoin = params.actionsActif ? Math.max(0, dernierResultat.bitcoin - (capitalTotal * params.actionsAlloc * params.bitcoinPct)) : 0;
+            const fiscaliteBitcoin = plusValueBitcoin * FISCALITE.flatTax;
+            const bourseNette = dernierResultat.sp500 + dernierResultat.bitcoin - fiscaliteSP500 - fiscaliteBitcoin;
+            fiscaliteCumulee += fiscaliteSP500 + fiscaliteBitcoin;
+
+            const totalAllocPct = params.avAlloc + params.scpiAlloc + params.immoAlloc + params.actionsAlloc + params.perAlloc;
+            const capitalNonAlloue = params.capitalInitial * (1 - totalAllocPct);
+
+            let patrimoineFinalNet = dernierResultat.avCapital + dernierResultat.scpiCapital + immoFinal + bourseNette + dernierResultat.pelSolde + dernierResultat.perSolde - dernierResultat.detteLombard + capitalNonAlloue;
+            
+            let patrimoineFinalNetReel = patrimoineFinalNet;
+            if (params.inflationActif) {
+                const facteurInflation = Math.pow(1 + params.inflationTaux, DUREE);
+                patrimoineFinalNetReel = patrimoineFinalNet / facteurInflation;
+            }
+            
+            const plusValueTotale = patrimoineFinalNet - capitalInitial;
+            const plusValueTotaleReelle = patrimoineFinalNetReel - capitalInitial;
+            
+            const rendementAnnuelMoyen = Math.abs(plusValueTotale) > 1 && capitalInitial > 0 ? (plusValueTotale / capitalInitial / DUREE) * 100 : 0;
+            const rendementAnnuelMoyenReel = params.inflationActif ? (Math.abs(plusValueTotaleReelle) > 1 && capitalInitial > 0 ? (plusValueTotaleReelle / capitalInitial / DUREE) * 100 : (-params.inflationTaux * 100)) : rendementAnnuelMoyen;
+            
+            const capitalAVFinal = dernierResultat.avCapital;
+            const renteAnnuelle = params.rente * 12;
+
+            let capitalPourRente = params.avActif ? (capitalTotal * params.avAlloc * (1 - params.avFrais)) : 0;
+
+            const dureeRenteTotale = params.avActif ? calculerDureeRenteViagere(capitalPourRente, renteAnnuelle, params.avRendement, params.avFraisGestion) : { ans: 0, mois: 0 };
+            const anneesConsommees = renteAnnuelle > 0 ? (rentesCumulees / renteAnnuelle) : 0;
+
+            let dureeRestante = { ans: 0, mois: 0 };
+            if (dureeRenteTotale.ans < 999 && params.avActif) {
+                const dureeRestanteAns = Math.max(0, dureeRenteTotale.ans + (dureeRenteTotale.mois / 12) - anneesConsommees);
+                dureeRestante.ans = Math.floor(dureeRestanteAns);
+                dureeRestante.mois = Math.floor((dureeRestanteAns % 1) * 12);
+            } else if (params.avActif) {
+                dureeRestante = dureeRenteTotale;
+            }
+
+            afficherResultats({
+                resultatsAnnuels, detailsFlux,
+                synthese: {
+                    capitalInitial, 
+                    patrimoineFinalNet: Math.round(patrimoineFinalNet),
+                    patrimoineFinalNetReel: Math.round(patrimoineFinalNetReel),
+                    plusValueTotale: Math.round(plusValueTotale),
+                    plusValueTotaleReelle: Math.round(plusValueTotaleReelle),
+                    plusValuePct: capitalInitial > 0 ? ((plusValueTotale / capitalInitial) * 100).toFixed(2) : '0.00',
+                    plusValuePctReelle: capitalInitial > 0 ? ((plusValueTotaleReelle / capitalInitial) * 100).toFixed(2) : '0.00',
+                    rentesCumulees: Math.round(rentesCumulees),
+                    rentesCumuleesNettes: Math.round(rentesCumuleesNettes),
+                    dividendesSCPICumules: Math.round(dividendesSCPICumules),
+                    pelFinal: Math.round(dernierResultat.pelSolde),
+                    perFinal: Math.round(dernierResultat.perSolde),
+                    economiesIRPER: Math.round(economiesIRPER),
+                    interetsLombardTotaux: Math.round(interetsLombardCumules), 
+                    fiscaliteTotale: Math.round(fiscaliteCumulee),
+                    rendementAnnuelMoyen: rendementAnnuelMoyen.toFixed(2), 
+                    rendementAnnuelMoyenReel: rendementAnnuelMoyenReel.toFixed(2),
+                    detteFinal: Math.round(dernierResultat.detteLombard),
+                    fiscalitePVImmo: Math.round(fiscalitePVImmo), 
+                    fiscaliteSP500: Math.round(fiscaliteSP500),
+                    fiscaliteBitcoin: Math.round(fiscaliteBitcoin), 
+                    dureeRenteAns: dureeRenteTotale.ans,
+                    dureeRenteMois: dureeRenteTotale.mois,
+                    dureeRestanteAns: dureeRestante.ans,
+                    dureeRestanteMois: dureeRestante.mois,
+                    anneesConsommees: anneesConsommees,
+                    montantLombardEmprunte: Math.round(montantLombardEmprunte),
+                    coutLombardTotal: Math.round(interetsLombardCumules), 
+                    capitalAVFinal: Math.round(capitalAVFinal),
+                    capitalAVDepart: Math.round(capitalPourRente),
+                    renteStoppee: renteStoppeeAnnee,
+                    renteInfinie: dureeRenteTotale.ans >= 999,
+                    inflationCumulee: params.inflationActif ? ((Math.pow(1 + params.inflationTaux, DUREE) - 1) * 100).toFixed(2) : 0,
+                    capitalNonAlloue: Math.round(capitalNonAlloue),
+                    totalAllocPct: totalAllocPct,
+                    capitalLombard: Math.round(params.capitalLombard)
+                }, params
+            });
+        } catch(error) {
+            console.error('Erreur de calcul:', error);
+        } finally {
+            isCalculating = false;
+            document.getElementById('loader').classList.remove('active');
+        }
+    }, 100);
+}
+
+function afficherResultats(data) {
+    const { resultatsAnnuels, detailsFlux, synthese, params } = data;
+    document.getElementById('results').classList.add('active');
+    
+    let dureeText = params.avActif ? (synthese.renteInfinie ? '∞ (perpétuelle)' : `${synthese.dureeRenteAns} ans ${synthese.dureeRenteMois} mois`) : 'N/A';
+    let dureeSubText = params.avActif ? (synthese.renteInfinie ? `Rendement net AV ≥ rente` : `Utilisé : ${Math.floor(synthese.anneesConsommees)} ans | Restant : ${synthese.dureeRestanteAns}a ${synthese.dureeRestanteMois}m`) : '';
+    
+    let dureeBadge = '';
+    if (params.avActif) {
+        if (synthese.renteStoppee !== null) {
+            dureeBadge = `<div class="warning-badge">⚠️ Capital épuisé en année ${synthese.renteStoppee}</div>`;
+        } else if (synthese.renteInfinie) {
+            dureeBadge = `<div class="success-badge">✓ Rente perpétuelle</div>`;
+        }
+    }
+    
+    let detteText = synthese.detteFinal > 0 ? `<div class="sub-value" style="margin-top: 10px;">⚠️ Après déduction dette Lombard (${synthese.detteFinal.toLocaleString()} €)</div>` : '';
+    
+    let modulesActifs = [];
+    if (params.avActif) modulesActifs.push('AV');
+    if (params.scpiActif) modulesActifs.push('SCPI');
+    if (params.immoActif) modulesActifs.push('Immo');
+    if (params.actionsActif) modulesActifs.push('Actions');
+    if (params.pelActif) modulesActifs.push('PEL');
+    if (params.perActif) modulesActifs.push('PER');
+    if (synthese.capitalNonAlloue > 0) modulesActifs.push('Cash');
+    if (synthese.capitalLombard > 0) modulesActifs.push('Lombard');
+    
+    let summaryHTML = `
+        <div class="summary-card">
+            <h3>💎 Patrimoine Final (NET)</h3>
+            <div class="value">${synthese.patrimoineFinalNet.toLocaleString()} €</div>
+            <div class="sub-value">${modulesActifs.join(' + ')}${params.inflationActif ? '<br>Réel (inflation) : ' + synthese.patrimoineFinalNetReel.toLocaleString() + ' €' : ''}</div>
+            ${detteText}
+        </div>
+        <div class="summary-card">
+            <h3>📈 Plus-Value Totale (NET)</h3>
+            <div class="value">+${synthese.plusValueTotale.toLocaleString()} €</div>
+            <div class="sub-value">(${synthese.plusValuePct}%)${params.inflationActif ? '<br>Réel : +' + synthese.plusValueTotaleReelle.toLocaleString() + ' € (' + synthese.plusValuePctReelle + '%)' : ''}</div>
+        </div>
+        <div class="summary-card">
+            <h3>💰 Rentes Perçues</h3>
+            <div class="value">${synthese.rentesCumulees.toLocaleString()} €</div>
+            <div class="sub-value">Brut • Net : ${synthese.rentesCumuleesNettes.toLocaleString()} €</div>
+        </div>
+        <div class="summary-card">
+            <h3>💸 Impôts Totaux</h3>
+            <div class="value">${synthese.fiscaliteTotale.toLocaleString()} €</div>
+            <div class="sub-value">Flat tax + LMNP + PV${params.perActif ? '<br>Économie IR PER : -' + synthese.economiesIRPER.toLocaleString() + ' €' : ''}</div>
+        </div>
+        <div class="summary-card">
+            <h3>⏱️ Durée Totale Rente</h3>
+            <div class="value">${dureeText}</div>
+            <div class="sub-value">${dureeSubText}</div>
+            ${dureeBadge}
+        </div>
+        <div class="summary-card">
+            <h3>📊 Rendement Annuel (NET)</h3>
+            <div class="value">${synthese.rendementAnnuelMoyen} %</div>
+            <div class="sub-value">Performance après impôts${params.inflationActif ? '<br>Réel : ' + synthese.rendementAnnuelMoyenReel + '% (inflation : ' + synthese.inflationCumulee + '%)' : ''}</div>
+        </div>
+    `;
+    
+    if (synthese.capitalNonAlloue > 0) {
+        const capitalNonAlloueReel = params.inflationActif ? Math.round(synthese.capitalNonAlloue / Math.pow(1 + params.inflationTaux, 8)) : synthese.capitalNonAlloue;
+        const perteInflation = params.inflationActif ? Math.round(synthese.capitalNonAlloue - capitalNonAlloueReel) : 0;
+        
+        summaryHTML += `
+            <div class="summary-card" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
+                <h3>⚠️ Capital Non Investi</h3>
+                <div class="value">${synthese.capitalNonAlloue.toLocaleString()} €</div>
+                <div class="sub-value">Conservé en cash (${((1 - synthese.totalAllocPct) * 100).toFixed(1)}%)${params.inflationActif ? '<br>Valeur réelle : ' + capitalNonAlloueReel.toLocaleString() + ' € (perte : ' + perteInflation.toLocaleString() + ' €)' : '<br>Aucun rendement'}</div>
+            </div>
+        `;
+    }
+    
+    if (params.scpiActif && synthese.dividendesSCPICumules > 0) {
+        summaryHTML += `
+            <div class="summary-card">
+                <h3>🏢 Dividendes SCPI (NET)</h3>
+                <div class="value">${synthese.dividendesSCPICumules.toLocaleString()} €</div>
+                <div class="sub-value">Sur 8 ans • Vers ${params.pelActif ? 'PEL' : 'AV'}</div>
+            </div>
+        `;
+    }
+
+    if (params.lombardActif && synthese.montantLombardEmprunte > 0) {
+        summaryHTML += `
+            <div class="summary-card">
+                <h3>🏦 Crédit Lombard</h3>
+                <div class="value">${synthese.montantLombardEmprunte.toLocaleString()} €</div>
+                <div class="sub-value">Emprunté (année ${params.lombardAnnee})<br>Coût intérêts : ${synthese.coutLombardTotal.toLocaleString()} €</div>
+            </div>
+        `;
+    }
+
+    if (params.perActif && synthese.perFinal > 0) {
+        summaryHTML += `
+            <div class="summary-card">
+                <h3>🎯 PER Final (NET)</h3>
+                <div class="value">${synthese.perFinal.toLocaleString()} €</div>
+                <div class="sub-value">Dispo à 62 ans<br>Éco IR : ${synthese.economiesIRPER.toLocaleString()} €</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('summary-cards').innerHTML = summaryHTML;
+    
+    creerGraphiquePatrimoine(resultatsAnnuels);
+    creerGraphiqueComposition(resultatsAnnuels, params);
+    creerGraphiqueFlux(resultatsAnnuels);
+    creerTableauPatrimoine(resultatsAnnuels, params);
+    creerTableauFlux(detailsFlux);
+    afficherRecommandations(synthese, params);
+    afficherRisques(params, synthese);
+    calculerTopAllocations(params);
+}
+
+function creerGraphiquePatrimoine(data) {
+    const ctx = document.getElementById('chartPatrimoine');
+    if (chartsInstances['patrimoine']) chartsInstances['patrimoine'].destroy();
+    chartsInstances['patrimoine'] = new Chart(ctx, {
+        type: 'line',
+        data: { labels: data.map(d => `Année ${d.annee}`), datasets: [{ label: 'Patrimoine Net', data: data.map(d => d.patrimoineNet), borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true, position: 'top' }}, scales: { y: { beginAtZero: false, ticks: { callback: function(value) { return value.toLocaleString() + ' €'; }}}}}
+    });
+}
+
+function creerGraphiqueComposition(data, params) {
+    const ctx = document.getElementById('chartComposition');
+    if (chartsInstances['composition']) chartsInstances['composition'].destroy();
+    
+    let datasets = [];
+    if (params.avActif) datasets.push({ label: 'Assurance Vie', data: data.map(d => d.avCapital), backgroundColor: '#10b981' });
+    if (params.scpiActif) datasets.push({ label: 'SCPI', data: data.map(d => d.scpiCapital), backgroundColor: '#f59e0b' });
+    if (params.immoActif) datasets.push({ label: 'Immobilier', data: data.map(d => d.immoValeur), backgroundColor: '#ef4444' });
+    if (params.actionsActif) {
+        datasets.push({ label: 'S&P500', data: data.map(d => d.sp500), backgroundColor: '#3b82f6' });
+        datasets.push({ label: 'Bitcoin', data: data.map(d => d.bitcoin), backgroundColor: '#8b5cf6' });
+    }
+    if (params.pelActif) datasets.push({ label: 'PEL', data: data.map(d => d.pelSolde), backgroundColor: '#06b6d4' });
+    if (params.perActif) datasets.push({ label: 'PER', data: data.map(d => d.perSolde), backgroundColor: '#a855f7' });
+    
+    chartsInstances['composition'] = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: data.map(d => `An ${d.annee}`), datasets: datasets },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true, position: 'top' }}, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: function(value) { return value.toLocaleString() + ' €'; }}}}}
+    });
+}
+
+function creerGraphiqueFlux(data) {
+    const ctx = document.getElementById('chartFlux');
+    if (chartsInstances['flux']) chartsInstances['flux'].destroy();
+    chartsInstances['flux'] = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: data.map(d => `Année ${d.annee}`), datasets: [ 
+            { label: 'Loyers nets', data: data.map(d => d.loyersNets), backgroundColor: '#10b981' }, 
+            { label: 'Dividendes SCPI', data: data.map(d => d.dividendesSCPI), backgroundColor: '#f59e0b' }, 
+            { label: 'Rente AV', data: data.map(d => d.renteAnnuelle), backgroundColor: '#3b82f6' }, 
+            { label: 'Intérêts Lombard', data: data.map(d => -d.interetsLombard), backgroundColor: '#ef4444' }, 
+            { label: 'Remb. Lombard', data: data.map(d => -d.remboursementLombard), backgroundColor: '#f97316' } 
+        ] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true, position: 'top' }}, scales: { y: { ticks: { callback: function(value) { return value.toLocaleString() + ' €'; }}}}}
+    });
+}
+
+function creerTableauPatrimoine(data, params) {
+    let cols = '<th>Année</th>';
+    if (params.avActif) cols += '<th>AV (€)</th>';
+    if (params.scpiActif) cols += '<th>SCPI (€)</th>';
+    if (params.immoActif) cols += '<th>Immo (€)</th>';
+    if (params.actionsActif) { cols += '<th>S&P500 (€)</th><th>Bitcoin (€)</th>'; }
+    if (params.pelActif) cols += '<th>PEL (€)</th>';
+    if (params.perActif) cols += '<th>PER (€)</th>';
+    cols += '<th>Dette (€)</th><th>Net (€)</th>';
+    
+    let html = `<thead><tr>${cols}</tr></thead><tbody>`;
+    data.forEach(row => {
+        let cells = `<td>Année ${row.annee}</td>`;
+        if (params.avActif) cells += `<td>${row.avCapital.toLocaleString()}</td>`;
+        if (params.scpiActif) cells += `<td>${row.scpiCapital.toLocaleString()}</td>`;
+        if (params.immoActif) cells += `<td>${row.immoValeur.toLocaleString()}</td>`;
+        if (params.actionsActif) { cells += `<td>${row.sp500.toLocaleString()}</td><td>${row.bitcoin.toLocaleString()}</td>`; }
+        if (params.pelActif) cells += `<td>${row.pelSolde.toLocaleString()}</td>`;
+        if (params.perActif) cells += `<td>${row.perSolde.toLocaleString()}</td>`;
+        cells += `<td class="negative">${row.detteLombard.toLocaleString()}</td><td class="positive" style="font-weight: bold;">${row.patrimoineNet.toLocaleString()}</td>`;
+        html += `<tr>${cells}</tr>`;
+    });
+    html += '</tbody>';
+    document.getElementById('tablePatrimoine').innerHTML = html;
+}
+
+function creerTableauFlux(data) {
+    let html = `<thead><tr><th>Année</th><th>🏠 Loyers bruts</th><th>Impôts LMNP</th><th>Net Loyers</th><th>🏢 Div. SCPI</th><th>Frais SCPI</th><th>💼 Int. AV</th><th>Rentes AV</th><th>Flat tax AV</th><th>📈 Gains S&P500</th><th>Gains BTC</th><th>🏦 Int. Lombard</th><th>Remb. Lombard</th></tr></thead><tbody>`;
+    data.forEach(row => {
+        html += `<tr><td>An ${row.annee}</td><td class="positive">${row.loyersBruts.toLocaleString()}</td><td class="negative">-${row.impotsLMNP.toLocaleString()}</td><td class="positive" style="font-weight: bold;">${row.loyersVersPEL.toLocaleString()}</td><td class="positive">${row.dividendesSCPI.toLocaleString()}</td><td class="negative">-${row.fraisGestionSCPI.toLocaleString()}</td><td class="positive">${row.interetsAV.toLocaleString()}</td><td class="negative">-${row.rentesAV.toLocaleString()}</td><td class="negative">-${row.flatTaxAV.toLocaleString()}</td><td class="positive">${row.gainsSP500.toLocaleString()}</td><td class="positive">${row.gainsBitcoin.toLocaleString()}</td><td class="negative">-${row.interetsLombard.toLocaleString()}</td><td class="negative">-${row.remboursementLombard.toLocaleString()}</td></tr>`;
+    });
+    html += '</tbody>';
+    document.getElementById('tableFlux').innerHTML = html;
+}
+
+function afficherRecommandations(synthese, params) {
+    const scpiData = SCPI_DATA[params.scpiProduit];
+    
+    let html = '<h3>💡 Recommandations Personnalisées</h3><ul>';
+    
+    if (params.avActif) {
+        const dureeRente = synthese.renteInfinie ? '∞ (perpétuelle)' : `${synthese.dureeRenteAns}a ${synthese.dureeRenteMois}m`;
+        html += `<li><strong>Assurance Vie :</strong> Capital ${synthese.capitalAVDepart.toLocaleString()} € → ${synthese.capitalAVFinal.toLocaleString()} € • Aucun plafond légal • Durée rente : ${dureeRente}</li>`;
+    }
+    
+    if (params.scpiActif) {
+        const rendementNet = scpiData.tauxBrut - scpiData.fraisGestion;
+        html += `<li><strong>SCPI ${scpiData.nom} :</strong> Rendement net estimé ${rendementNet.toFixed(2)}% (${scpiData.tauxBrut}% - ${scpiData.fraisGestion}% frais) • TOF ${scpiData.tof}% • Risque : ${scpiData.risque} • Aucun plafond</li>`;
+    }
+    
+    if (params.immoActif) {
+        html += `<li><strong>Immobilier LMNP :</strong> Abattement 50% sur loyers • Rendement locatif ${(params.immoRendement * 100).toFixed(1)}% • PV annuelle ${(params.immoPlusValue * 100).toFixed(1)}% • Aucun plafond</li>`;
+    }
+    
+    if (params.actionsActif) {
+        const montantActions = params.capitalTotal * params.actionsAlloc;
+        const montantPEA = Math.min(montantActions, PLAFONDS.pea.limite);
+        const montantCTO = Math.max(0, montantActions - PLAFONDS.pea.limite);
+        
+        html += `<li><strong>Actions :</strong> S&P500 ${(params.sp500Pct * 100).toFixed(0)}% • Bitcoin ${(params.bitcoinPct * 100).toFixed(0)}%`;
+        
+        if (montantCTO > 0) {
+            html += ` • PEA : ${montantPEA.toLocaleString()} € (plafond atteint) + CTO : ${montantCTO.toLocaleString()} € (excédent)`;
+        } else {
+            html += ` • PEA : ${montantPEA.toLocaleString()} € (plafond 150k€)`;
+        }
+        
+        html += `</li>`;
+    }
+    
+    if (params.lombardActif && synthese.montantLombardEmprunte > 0) {
+        html += `<li><strong>Crédit Lombard :</strong> ${synthese.montantLombardEmprunte.toLocaleString()} € emprunté (année ${params.lombardAnnee}) • Capital ajouté à votre allocation • Coût intérêts : ${synthese.coutLombardTotal.toLocaleString()} € • Remboursement sur flux (loyers + dividendes)</li>`;
+    }
+    
+    if (params.pelActif) {
+        html += `<li><strong>PEL :</strong> Taux ${(params.pelTaux * 100).toFixed(2)}% brut • Plafond 61 200 € • Flat tax 30% • ${params.pelInjection === 'aucun' ? 'Conservé' : params.pelInjection === 'av' ? 'Injecté dans AV année 8' : 'Remboursement Lombard anticipé'}</li>`;
+    }
+    
+    if (params.perActif) {
+        const versementAnnuel = Math.round(params.capitalTotal * params.perAlloc / 8);
+        html += `<li><strong>PER :</strong> Versement annuel ${versementAnnuel.toLocaleString()} € • Plafond ${PLAFONDS.per.limite.toLocaleString()} €/an (10% revenus) • Économie IR ${synthese.economiesIRPER.toLocaleString()} € (TMI ${(params.perTMI * 100).toFixed(0)}%) • Capital final ${synthese.perFinal.toLocaleString()} €</li>`;
+    }
+    
+    if (params.inflationActif) {
+        html += `<li><strong>Inflation :</strong> Taux ${(params.inflationTaux * 100).toFixed(1)}%/an • Impact sur 8 ans : ${synthese.inflationCumulee}% • Patrimoine réel final : ${synthese.patrimoineFinalNetReel.toLocaleString()} € (vs ${synthese.patrimoineFinalNet.toLocaleString()} € nominal)</li>`;
+    }
+    
+    if (synthese.capitalNonAlloue > 0) {
+        const capitalNonAlloueReel = params.inflationActif ? Math.round(synthese.capitalNonAlloue / Math.pow(1 + params.inflationTaux, 8)) : synthese.capitalNonAlloue;
+        const perteInflation = params.inflationActif ? Math.round(synthese.capitalNonAlloue - capitalNonAlloueReel) : 0;
+        html += `<li><strong>⚠️ Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € conservé en cash (${((1 - synthese.totalAllocPct) * 100).toFixed(1)}%) • ${params.inflationActif ? 'Valeur réelle : ' + capitalNonAlloueReel.toLocaleString() + ' € (perte : ' + perteInflation.toLocaleString() + ' €)' : 'Aucun rendement'}</li>`;
+    }
+    
+    const tauxFiscalite = Math.abs(synthese.plusValueTotale) > 0 ? (synthese.fiscaliteTotale / Math.abs(synthese.plusValueTotale) * 100).toFixed(1) : '0.0';
+    html += `<li><strong>Taux de prélèvement global :</strong> ${tauxFiscalite}% ${parseFloat(tauxFiscalite) < 25 ? '✓ Objectif atteint' : '⚠️ Objectif < 25%'}</li>`;
+    html += `<li><strong>Modules actifs :</strong> ${params.avActif ? '✓ AV' : '✗ AV'} | ${params.scpiActif ? '✓ SCPI' : '✗ SCPI'} | ${params.immoActif ? '✓ Immo' : '✗ Immo'} | ${params.actionsActif ? '✓ Actions' : '✗ Actions'} | ${params.lombardActif ? '✓ Lombard' : '✗ Lombard'} | ${params.pelActif ? '✓ PEL' : '✗ PEL'} | ${params.perActif ? '✓ PER' : '✗ PER'}</li>`;
+    
+    html += '</ul>';
+    document.getElementById('recommendations').innerHTML = html;
+}
+
+function afficherRisques(params, synthese) {
+    const scpiData = SCPI_DATA[params.scpiProduit];
+    
+    let html = '<h3>⚠️ Risques Principaux</h3><ul>';
+    
+    if (params.avActif) {
+        const tauxNet = (params.avRendement - params.avFraisGestion) * 100;
+        const renteAnnuelle = params.rente * 12;
+        html += `<li><strong>Assurance Vie :</strong> Rente ${renteAnnuelle.toLocaleString()} €/an avec rendement net ${tauxNet.toFixed(2)}% • Risque épuisement du capital si rente > intérêts</li>`;
+    }
+    
+    if (params.scpiActif) {
+        html += `<li><strong>SCPI ${scpiData.nom} :</strong> Risque ${scpiData.risque} • TOF ${scpiData.tof}% (risque vacance locative) • Frais gestion ${scpiData.fraisGestion}% annuels • Liquidité faible (délai revente 3-12 mois)</li>`;
+    }
+    
+    if (params.immoActif) {
+        html += `<li><strong>Immobilier LMNP :</strong> Risque vacance locative • Impayés • Travaux imprévus • Fiscalité PV immo (abattements après 6 ans)</li>`;
+    }
+    
+    if (params.actionsActif) {
+        const montantActions = params.capitalTotal * params.actionsAlloc;
+        const pctPEA = Math.min(montantActions, PLAFONDS.pea.limite) / montantActions * 100;
+        
+        html += `<li><strong>Actions :</strong> PEA plafond 150k€ (${pctPEA.toFixed(0)}% de votre allocation) • Blocage 5 ans pour optimisation fiscale • CTO flat tax 30%</li>`;
+        html += `<li><strong>Bitcoin :</strong> ${(params.bitcoinPct * 100).toFixed(0)}% du portefeuille • Volatilité extrême (corrections -50% à -80%) • Risque réglementaire</li>`;
+        html += `<li><strong>S&P500 :</strong> Risque krach boursier (-30% à -50%) • Risque de change USD/EUR</li>`;
+    }
+    
+    if (params.lombardActif && synthese.montantLombardEmprunte > 0) {
+        html += `<li><strong>Crédit Lombard :</strong> Appel de marge si portefeuille Actions baisse > 30% • Risque vente forcée titres • Remboursement obligatoire sur ${params.lombardDuree} ans • Dette non remboursée : ${synthese.detteFinal.toLocaleString()} €</li>`;
+    }
+    
+    if (params.perActif) {
+        const versementAnnuel = Math.round(params.capitalTotal * params.perAlloc / 8);
+        if (versementAnnuel > PLAFONDS.per.limite) {
+            html += `<li><strong>PER :</strong> ⚠️ Versement annuel ${versementAnnuel.toLocaleString()} € dépasse le plafond ${PLAFONDS.per.limite.toLocaleString()} €/an • Blocage jusqu'à 62 ans • Fiscalité sortie au barème IR</li>`;
+        } else {
+            html += `<li><strong>PER :</strong> Blocage jusqu'à 62 ans (sauf cas exceptionnels) • Fiscalité sortie au barème IR • Risque perte en capital sur supports UC</li>`;
+        }
+    }
+    
+    if (params.pelActif) {
+        html += `<li><strong>PEL :</strong> Plafond 61 200 € • Tout retrait = clôture définitive • Rendement faible (${(params.pelTaux * 100).toFixed(2)}%)</li>`;
+    }
+    
+    html += `<li><strong>Fiscalité évolutive :</strong> Flat tax peut passer de 30% à 33-36% • Abattements PV immo peuvent être réduits • TMI PER peut évoluer • Plafonds peuvent changer</li>`;
+    
+    if (params.inflationActif) {
+        html += `<li><strong>Inflation :</strong> Érosion pouvoir d'achat ${(params.inflationTaux * 100).toFixed(1)}%/an • Rente AV non revalorisée • Impact cumulé sur 8 ans : -${synthese.inflationCumulee}%</li>`;
+    } else {
+        html += `<li><strong>Inflation :</strong> Non prise en compte • Érosion réelle pouvoir d'achat si inflation > 0% • Rente AV non revalorisée</li>`;
+    }
+    
+    if (synthese.capitalNonAlloue > 0) {
+        const capitalNonAlloueReel = params.inflationActif ? Math.round(synthese.capitalNonAlloue / Math.pow(1 + params.inflationTaux, 8)) : synthese.capitalNonAlloue;
+        const perteInflation = params.inflationActif ? Math.round(synthese.capitalNonAlloue - capitalNonAlloueReel) : 0;
+        html += `<li><strong>⚠️ Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € en cash • ${params.inflationActif ? 'Perte réelle de ' + perteInflation.toLocaleString() + ' € sur 8 ans (inflation ' + synthese.inflationCumulee + '%)' : 'Aucun rendement'} • Recommandation : allouer 100% du capital</li>`;
+    }
+    
+    html += '</ul>';
+    document.getElementById('risks').innerHTML = html;
+}
+
+function calculerTopAllocations(params) {
+    if (!params.actionsActif) {
+        document.getElementById('top-allocations').innerHTML = '<p style="text-align: center; padding: 20px; color: #6c757d;">Module Actions désactivé</p>';
+        return;
+    }
+    
+    const allocations = [
+        { sp500: 0.8, bitcoin: 0.2, nom: 'Prudente', emoji: '🛡️' },
+        { sp500: 0.6, bitcoin: 0.4, nom: 'Équilibrée', emoji: '⚖️' },
+        { sp500: 0.4, bitcoin: 0.6, nom: 'Agressive', emoji: '🚀' }
+    ];
+    
+    let html = '';
+    const capitalActions = params.capitalTotal * params.actionsAlloc;
+    
+    allocations.forEach(alloc => {
+        const sp500Final = (capitalActions * alloc.sp500) * Math.pow(1 + params.sp500Rendement, 8);
+        const bitcoinFinal = (capitalActions * alloc.bitcoin) * Math.pow(1 + params.bitcoinRendement, 8);
+        const capitalFinal = sp500Final + bitcoinFinal;
+        const gainBourse = capitalFinal - capitalActions;
+        const rendement = capitalActions > 0 ? (gainBourse / capitalActions / 8 * 100).toFixed(1) : '0.0';
+        
+        const fiscaliteSP500 = (sp500Final - (capitalActions * alloc.sp500)) * FISCALITE.psSeul;
+        const fiscaliteBTC = (bitcoinFinal - (capitalActions * alloc.bitcoin)) * FISCALITE.flatTax;
+        const gainNet = gainBourse - fiscaliteSP500 - fiscaliteBTC;
+        
+        html += `<div class="allocation-card">
+            <h4>${alloc.emoji} Allocation ${alloc.nom}</h4>
+            <p><strong>S&P500 :</strong> ${(alloc.sp500 * 100).toFixed(0)}% (${Math.round(capitalActions * alloc.sp500).toLocaleString()} €)</p>
+            <p><strong>Bitcoin :</strong> ${(alloc.bitcoin * 100).toFixed(0)}% (${Math.round(capitalActions * alloc.bitcoin).toLocaleString()} €)</p>
+            <p><strong>Gain brut estimé :</strong> +${Math.round(gainBourse).toLocaleString()} €</p>
+            <p><strong>Fiscalité :</strong> -${Math.round(fiscaliteSP500 + fiscaliteBTC).toLocaleString()} € (PEA ${Math.round(fiscaliteSP500).toLocaleString()} € + CTO ${Math.round(fiscaliteBTC).toLocaleString()} €)</p>
+            <p><strong>Gain net :</strong> +${Math.round(gainNet).toLocaleString()} €</p>
+            <p><strong>Rendement annuel :</strong> ${rendement}%</p>
+        </div>`;
+    });
+    
+    document.getElementById('top-allocations').innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('dark-mode-toggle').textContent = '☀️';
+    }
+    
+    updateAllocationDisplays();
+    updateSCPIDetails();
+    updateBitcoin();
+    toggleInflationCard();
+    toggleAVCard();
+    toggleSCPICard();
+    toggleImmoCard();
+    toggleActionsCard();
+    updateLombardAvailability();
+    toggleLombardCard();
+    togglePELCard();
+    togglePERCard();
+    
+    const debouncedCalc = debounce(calculerSimulation, 500);
+    
+    document.querySelectorAll('.scenario-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            sauvegarderScenario();
+            document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentScenario = this.dataset.scenario;
+            chargerScenario(currentScenario);
+            calculerSimulation();
+        });
+    });
+    
+    document.querySelectorAll('.auto-calc').forEach(element => {
+        element.addEventListener(element.type === 'checkbox' ? 'change' : 'input', () => {
+            if (element.id === 'inflation-actif') toggleInflationCard();
+            if (element.id === 'av-actif') toggleAVCard();
+            if (element.id === 'scpi-actif') toggleSCPICard();
+            if (element.id === 'immo-actif') toggleImmoCard();
+            if (element.id === 'actions-actif') toggleActionsCard();
+            if (element.id === 'lombard-actif') toggleLombardCard();
+            if (element.id === 'pel-actif') togglePELCard();
+            if (element.id === 'per-actif') togglePERCard();
+            if (element.id === 'actions-alloc-slider') updateLombardAvailability();
+            if (element.id === 'lombard-alloc-slider' || element.id === 'lombard-taux-input' || element.id === 'lombard-duree' || element.id === 'lombard-annee') updateLombardCalculs();
+            updateAllocationDisplays();
+            debouncedCalc();
+        });
+    });
+    
+    document.getElementById('scpi-produit').addEventListener('change', () => { updateSCPIDetails(); debouncedCalc(); });
+    document.getElementById('sp500-input').addEventListener('input', () => { updateBitcoin(); debouncedCalc(); });
+    document.getElementById('capital-total-input').addEventListener('input', () => { updateLombardCalculs(); debouncedCalc(); });
+    
+    sauvegarderScenario();
+    calculerSimulation();
+});
+</script>
+</body>
+</html>
+
