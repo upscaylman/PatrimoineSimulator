@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulateur Patrimonial Expert - France 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: 'hsl(252, 75%, 66%)', // A slightly muted purple, good for M3
+                light: 'hsl(252, 80%, 75%)',
+                dark: 'hsl(252, 70%, 55%)',
+              },
+              secondary: {
+                DEFAULT: 'hsl(265, 55%, 50%)',
+                light: 'hsl(265, 60%, 65%)',
+                dark: 'hsl(265, 50%, 40%)',
+              },
+              surface: {
+                light: 'hsl(210, 36%, 96%)', // Light Gray
+                dark: 'hsl(222, 47%, 11%)', // Very Dark Blue
+              },
+              'on-surface': {
+                 light: 'hsl(215, 28%, 17%)',
+                 dark: 'hsl(210, 40%, 96%)',
+              },
+              'surface-container': {
+                light: 'hsl(214, 32%, 91%)',
+                dark: 'hsl(218, 23%, 23%)',
+              },
+              'on-surface-variant': {
+                light: 'hsl(214, 20%, 49%)',
+                dark: 'hsl(214, 20%, 69%)'
+              },
+              success: 'hsl(145, 63%, 42%)',
+              warning: 'hsl(45, 100%, 51%)',
+              error: 'hsl(0, 72%, 51%)',
+            },
+            borderRadius: {
+              '2xl': '1rem',
+              '3xl': '1.5rem',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "chart.js": "https://aistudiocdn.com/chart.js@^4.5.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-surface-light dark:bg-surface-dark transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
