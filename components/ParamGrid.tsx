@@ -8,6 +8,7 @@ import {
   MdError,
   MdGpsFixed,
   MdHome,
+  MdSchedule,
   MdSettings,
   MdShowChart,
   MdWarning,
@@ -233,13 +234,13 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           />
         </InputGroup>
 
-        <div className="my-5 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+        <div className="my-5 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between mb-4">
             <label
               htmlFor="versement-periodique-actif"
               className="font-bold text-sm text-on-surface-light dark:text-on-surface-dark flex items-center gap-2"
             >
-              <MdAccountBalanceWallet className="w-5 h-5 text-primary" />
+              <MdSchedule className="w-5 h-5 text-primary" />
               Versements périodiques
             </label>
             <Switch
@@ -293,7 +294,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               />
             </div>
             {params.versementPeriodiqueActif && params.versementMontant > 0 && (
-              <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
                 <div className="text-xs text-on-surface-variant-light dark:text-on-surface-variant-dark space-y-1">
                   <div className="flex justify-between">
                     <span>Versement annuel :</span>

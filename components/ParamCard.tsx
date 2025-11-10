@@ -21,7 +21,7 @@ export const ParamCard: React.FC<ParamCardProps> = ({
         <h3 className="text-xl font-extrabold text-on-surface-light dark:text-on-surface-dark mb-6 flex items-center gap-2 flex-shrink-0">
           {title}
         </h3>
-        <div className="space-y-4 flex-grow min-h-0 flex flex-col pb-24">
+        <div className="space-y-4 flex-grow min-h-0 flex flex-col pb-32 sm:pb-24">
           {children}
         </div>
       </div>
