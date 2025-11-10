@@ -96,7 +96,7 @@ export const TopAllocations: React.FC<TopAllocationsProps> = ({ params }) => {
                     <strong>Gain net :</strong> +
                     {Math.round(gainNet).toLocaleString()} €
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-300">
                     <strong>Rendement annuel :</strong> {rendement}%
                   </p>
                 </div>
@@ -105,7 +105,7 @@ export const TopAllocations: React.FC<TopAllocationsProps> = ({ params }) => {
           );
         })}
       </div>
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 italic">
+      <p className="mt-4 text-sm text-gray-600 dark:text-gray-300 italic">
         * Comparaison basée sur les rendements actuels. Les performances passées
         ne préjugent pas des performances futures.
       </p>

@@ -15,6 +15,7 @@ import {
 import { PLAFONDS, SCPI_DATA } from "../constants";
 import type { SimulationParams } from "../types";
 import { ParamCard } from "./ParamCard";
+import { Select } from "./ui/Select";
 import { Slider } from "./ui/Slider";
 import { Switch } from "./ui/Switch";
 import { TooltipIcon } from "./ui/TooltipIcon";
@@ -55,7 +56,7 @@ const NumberInput: React.FC<
     <input
       type="number"
       {...props}
-      className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md"
+      className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-500 rounded-xl bg-white dark:bg-gray-800/80 text-base font-semibold text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md"
     />
     <span className="font-bold text-base text-on-surface-variant-light dark:text-on-surface-variant-dark min-w-[2rem]">
       {unit}
@@ -71,7 +72,7 @@ const AllocationDisplay: React.FC<{
   sliderValue: number;
   max?: number;
 }> = ({ label, value, amount, onSliderChange, sliderValue, max = 100 }) => (
-  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-600">
     <div className="flex justify-between items-center mb-3">
       <label className="font-bold text-base text-on-surface-light dark:text-on-surface-dark">
         {label}
@@ -92,7 +93,7 @@ const AllocationDisplay: React.FC<{
       max={max}
       step="0.5"
     />
-    <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+    <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-300">
       <span>0%</span>
       <span>{max}%</span>
     </div>
@@ -291,7 +292,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           </InputGroup>
         </div>
 
-        <div className="mt-6 space-y-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="mt-6 space-y-3 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-600">
           <div className="flex justify-between items-center">
             <span className="text-sm font-semibold text-on-surface-variant-light dark:text-on-surface-variant-dark">
               Alloué :
@@ -329,7 +330,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         }
         color="bg-green-500"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="av-actif" className="font-bold text-sm">
             Activer l'assurance vie
           </label>
@@ -411,7 +412,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         }
         color="bg-yellow-500"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="scpi-actif" className="font-bold text-sm">
             Activer la SCPI
           </label>
@@ -440,10 +441,9 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             label="Produit SCPI"
             tooltip="TOF = Taux d'Occupation Financier (100% - vacance locative)."
           >
-            <select
+            <Select
               value={params.scpiProduit}
               onChange={(e) => onParamChange("scpiProduit", e.target.value)}
-              className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               {Object.keys(SCPI_DATA).map((key) => (
                 <option key={key} value={key}>
@@ -451,7 +451,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
                   {SCPI_DATA[key].risque})
                 </option>
               ))}
-            </select>
+            </Select>
           </InputGroup>
           <div className="text-xs p-3 rounded-lg bg-surface-container-light dark:bg-surface-container-dark text-on-surface-variant-light dark:text-on-surface-variant-dark">
             <strong>{SCPI_DATA[params.scpiProduit].nom}</strong>
@@ -475,7 +475,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         }
         color="bg-red-500"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="immo-actif" className="font-bold text-sm">
             Activer l'immobilier
           </label>
@@ -527,8 +527,11 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               }
             />
           </InputGroup>
-          <div className="flex items-center justify-between mt-4">
-            <label htmlFor="vente-immo" className="font-semibold text-sm">
+          <div className="flex items-center justify-between mt-5 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
+            <label
+              htmlFor="vente-immo"
+              className="font-bold text-sm text-red-800 dark:text-red-200"
+            >
               Vendre en année 8
             </label>
             <Switch
@@ -550,9 +553,9 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Allocation Actions
           </>
         }
-        color="from-yellow-500 to-purple-500"
+        color="from-yellow-500 to-blue-600"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="actions-actif" className="font-bold text-sm">
             Activer les actions
           </label>
@@ -642,9 +645,9 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             PER
           </>
         }
-        color="bg-purple-500"
+        color="bg-blue-600"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="per-actif" className="font-bold text-sm">
             Activer le PER
           </label>
@@ -729,7 +732,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           <label
             htmlFor="lombard-actif"
             className={`font-bold text-sm transition-colors ${
-              !isLombardAvailable && "text-gray-400 dark:text-gray-500"
+              !isLombardAvailable && "text-gray-400 dark:text-gray-400"
             }`}
           >
             Activer le crédit Lombard
@@ -771,19 +774,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             </div>
           </InputGroup>
           <InputGroup label="Année de contraction">
-            <select
+            <Select
               value={params.lombardAnnee}
               onChange={(e) =>
                 onParamChange("lombardAnnee", parseInt(e.target.value))
               }
-              className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               {[...Array(9).keys()].map((i) => (
                 <option key={i} value={i}>
                   Année {i}
                 </option>
               ))}
-            </select>
+            </Select>
           </InputGroup>
           <InputGroup label="Taux Lombard (brut/an)">
             <NumberInput
@@ -795,16 +797,15 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             />
           </InputGroup>
           <InputGroup label="Durée du crédit">
-            <select
+            <Select
               value={params.lombardDuree}
               onChange={(e) =>
                 onParamChange("lombardDuree", parseInt(e.target.value))
               }
-              className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               <option value="3">3 ans</option>
               <option value="5">5 ans</option>
-            </select>
+            </Select>
           </InputGroup>
         </div>
       </ParamCard>
@@ -821,7 +822,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         }
         color="bg-cyan-500"
       >
-        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="pel-actif" className="font-bold text-sm">
             Activer le PEL
           </label>
@@ -846,7 +847,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             />
           </InputGroup>
           <InputGroup label="Injecter PEL dans :">
-            <select
+            <Select
               value={params.pelInjection}
               onChange={(e) =>
                 onParamChange(
@@ -854,14 +855,13 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
                   e.target.value as "aucun" | "av" | "lombard"
                 )
               }
-              className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               <option value="aucun">Aucun (conserver PEL)</option>
               <option value="av">Assurance Vie (fin année 8)</option>
               <option value="lombard" disabled={!params.lombardActif}>
                 Remboursement Lombard
               </option>
-            </select>
+            </Select>
           </InputGroup>
         </div>
       </ParamCard>
