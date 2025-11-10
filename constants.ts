@@ -99,6 +99,9 @@ export const PLAFONDS = {
 
 export const INITIAL_PARAMS: SimulationParams = {
   capitalTotal: 0,
+  versementPeriodiqueActif: false,
+  versementFrequence: "mensuel",
+  versementMontant: 0,
   inflationActif: false,
   inflationTaux: 2.0,
   avActif: false,

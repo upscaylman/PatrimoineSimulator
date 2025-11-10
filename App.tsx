@@ -138,7 +138,16 @@ const App: React.FC = () => {
     const capitalLombard = params.lombardActif
       ? capitalInitial * actionsAllocPct * lombardPct
       : 0;
-    const capitalTotalAvecLombard = capitalInitial + capitalLombard;
+    // Calcul des versements futurs totaux (sur 8 ans)
+    const versementAnnuel = params.versementPeriodiqueActif
+      ? params.versementFrequence === "mensuel"
+        ? params.versementMontant * 12
+        : params.versementMontant * 52.18
+      : 0;
+    const versementsFutursTotaux = versementAnnuel * 8; // 8 ans de simulation
+
+    const capitalTotalAvecLombard =
+      capitalInitial + capitalLombard + versementsFutursTotaux;
 
     const avAlloc = avActif ? params.avAlloc : 0;
     const scpiAlloc = scpiActif ? params.scpiAlloc : 0;

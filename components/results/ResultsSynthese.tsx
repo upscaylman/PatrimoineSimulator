@@ -4,6 +4,7 @@ import {
   MdAccountBalanceWallet,
   MdBarChart,
   MdBusinessCenter,
+  MdCheckCircle,
   MdDiamond,
   MdPayments,
   MdShowChart,
@@ -12,7 +13,6 @@ import {
 } from "react-icons/md";
 import type { SimulationResults } from "../../types";
 import { SummaryCard } from "../SummaryCard";
-import { TopAllocations } from "../TopAllocations";
 
 interface ResultsSyntheseProps {
   results: SimulationResults;
@@ -74,8 +74,9 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
               {synthese.detteFinal > 0 && (
                 <>
                   <br />
-                  <span className="text-yellow-200">
-                    ⚠️ Après déduction dette Lombard (
+                  <span className="text-yellow-200 flex items-center gap-1">
+                    <MdWarning size={14} />
+                    Après déduction dette Lombard (
                     {synthese.detteFinal.toLocaleString()} €)
                   </span>
                 </>
@@ -175,16 +176,18 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
                 {synthese.renteStoppee !== null && (
                   <>
                     <br />
-                    <span className="inline-block mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-yellow-400 text-yellow-900">
-                      ⚠️ Capital épuisé en année {synthese.renteStoppee}
+                    <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-yellow-400 text-yellow-900">
+                      <MdWarning size={14} />
+                      Capital épuisé en année {synthese.renteStoppee}
                     </span>
                   </>
                 )}
                 {synthese.renteInfinie && synthese.renteStoppee === null && (
                   <>
                     <br />
-                    <span className="inline-block mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-green-500 text-white">
-                      ✓ Rente perpétuelle
+                    <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-green-500 text-white">
+                      <MdCheckCircle size={14} />
+                      Rente perpétuelle
                     </span>
                   </>
                 )}
@@ -317,8 +320,6 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
           />
         )}
       </div>
-
-      <TopAllocations params={params} />
     </div>
   );
 };

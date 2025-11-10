@@ -78,7 +78,7 @@ export const Risks: React.FC<RisksProps> = ({ synthese, params }) => {
     );
     if (versementAnnuel > PLAFONDS.per.limite) {
       listItems.push(
-        `<strong>PER :</strong> ⚠️ Versement annuel ${versementAnnuel.toLocaleString()} € dépasse le plafond ${PLAFONDS.per.limite.toLocaleString()} €/an • Blocage jusqu'à 62 ans • Fiscalité sortie au barème IR`
+        `<strong>PER :</strong> Versement annuel ${versementAnnuel.toLocaleString()} € dépasse le plafond ${PLAFONDS.per.limite.toLocaleString()} €/an • Blocage jusqu'à 62 ans • Fiscalité sortie au barème IR`
       );
     } else {
       listItems.push(
@@ -124,7 +124,7 @@ export const Risks: React.FC<RisksProps> = ({ synthese, params }) => {
       ? Math.round(synthese.capitalNonAlloue - capitalNonAlloueReel)
       : 0;
     listItems.push(
-      `<strong>⚠️ Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € en cash • ${
+      `<strong>Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € en cash • ${
         params.inflationActif
           ? `Perte réelle de ${perteInflation.toLocaleString()} € sur 8 ans (inflation ${
               synthese.inflationCumulee

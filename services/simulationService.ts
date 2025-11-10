@@ -81,7 +81,41 @@ export function calculateSimulation(
   const resultatsAnnuels: AnnualResult[] = [];
   const detailsFlux: FluxDetail[] = [];
 
+  // Calcul du montant annuel des versements périodiques
+  const versementAnnuel = params.versementPeriodiqueActif
+    ? params.versementFrequence === "mensuel"
+      ? params.versementMontant * 12
+      : params.versementMontant * 52.18 // 52.18 semaines par an en moyenne
+    : 0;
+
   for (let annee = 0; annee <= DUREE; annee++) {
+    // Ajout des versements périodiques (sauf année 0 qui est le départ)
+    if (annee > 0 && params.versementPeriodiqueActif && versementAnnuel > 0) {
+      const versementAV =
+        versementAnnuel * (params.avAlloc / 100) * (1 - params.avFrais / 100);
+      const versementSCPI =
+        versementAnnuel *
+        (params.scpiAlloc / 100) *
+        (1 - scpiData.fraisEntree / 100);
+      const versementImmo = versementAnnuel * (params.immoAlloc / 100);
+      const versementSP500 =
+        versementAnnuel * (params.actionsAlloc / 100) * (params.sp500 / 100);
+      const versementBitcoin =
+        versementAnnuel *
+        (params.actionsAlloc / 100) *
+        ((100 - params.sp500) / 100);
+      const versementPER = versementAnnuel * (params.perAlloc / 100);
+
+      if (params.avActif) avCapital += versementAV;
+      if (params.scpiActif) scpiCapital += versementSCPI;
+      if (params.immoActif) immoValeur += versementImmo;
+      if (params.actionsActif) {
+        sp500 += versementSP500;
+        bitcoin += versementBitcoin;
+      }
+      if (params.perActif) perSolde += versementPER;
+    }
+
     if (
       params.lombardActif &&
       annee === params.lombardAnnee &&

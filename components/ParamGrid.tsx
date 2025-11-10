@@ -216,7 +216,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Capital à Investir
           </>
         }
-        color="from-primary to-secondary"
+        color="from-blue-500 via-indigo-500 to-purple-600"
       >
         <InputGroup
           label="Capital initial"
@@ -233,6 +233,95 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           />
         </InputGroup>
 
+        <div className="my-5 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+          <div className="flex items-center justify-between mb-4">
+            <label
+              htmlFor="versement-periodique-actif"
+              className="font-bold text-sm text-on-surface-light dark:text-on-surface-dark flex items-center gap-2"
+            >
+              <MdAccountBalanceWallet className="w-5 h-5 text-primary" />
+              Versements périodiques
+            </label>
+            <Switch
+              id="versement-periodique-actif"
+              checked={params.versementPeriodiqueActif}
+              onChange={(e) =>
+                onParamChange("versementPeriodiqueActif", e.target.checked)
+              }
+            />
+          </div>
+          <div
+            className={`transition-opacity duration-300 space-y-4 ${
+              params.versementPeriodiqueActif
+                ? "opacity-100"
+                : "opacity-50 pointer-events-none"
+            }`}
+          >
+            <div>
+              <label className="block mb-2 font-semibold text-xs text-on-surface-variant-light dark:text-on-surface-variant-dark">
+                Fréquence
+              </label>
+              <Select
+                value={params.versementFrequence}
+                onChange={(e) =>
+                  onParamChange(
+                    "versementFrequence",
+                    e.target.value as "mensuel" | "hebdomadaire"
+                  )
+                }
+              >
+                <option value="mensuel">Mensuel</option>
+                <option value="hebdomadaire">Hebdomadaire</option>
+              </Select>
+            </div>
+            <div>
+              <label className="block mb-2 font-semibold text-xs text-on-surface-variant-light dark:text-on-surface-variant-dark">
+                Montant par{" "}
+                {params.versementFrequence === "mensuel" ? "mois" : "semaine"}
+              </label>
+              <NumberInput
+                unit="€"
+                value={params.versementMontant}
+                onChange={(e) =>
+                  onParamChange(
+                    "versementMontant",
+                    parseFloat(e.target.value) || 0
+                  )
+                }
+                min="0"
+                step="50"
+              />
+            </div>
+            {params.versementPeriodiqueActif && params.versementMontant > 0 && (
+              <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+                <div className="text-xs text-on-surface-variant-light dark:text-on-surface-variant-dark space-y-1">
+                  <div className="flex justify-between">
+                    <span>Versement annuel :</span>
+                    <span className="font-bold text-on-surface-light dark:text-on-surface-dark">
+                      {(params.versementFrequence === "mensuel"
+                        ? params.versementMontant * 12
+                        : params.versementMontant * 52.18
+                      ).toLocaleString()}{" "}
+                      €
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total sur 8 ans :</span>
+                    <span className="font-bold text-primary">
+                      {(
+                        (params.versementFrequence === "mensuel"
+                          ? params.versementMontant * 12
+                          : params.versementMontant * 52.18) * 8
+                      ).toLocaleString()}{" "}
+                      €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {params.lombardActif && (
           <div className="my-4 p-3 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 rounded-r-lg">
             <div className="font-semibold text-blue-800 dark:text-blue-200 text-sm flex items-center gap-1">
@@ -240,7 +329,13 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             </div>
             <div className="text-xs text-blue-600 dark:text-blue-300">
               {Math.round(
-                capitalTotalAvecLombard - params.capitalTotal
+                capitalTotalAvecLombard -
+                  params.capitalTotal -
+                  (params.versementPeriodiqueActif
+                    ? (params.versementFrequence === "mensuel"
+                        ? params.versementMontant * 12
+                        : params.versementMontant * 52.18) * 8
+                    : 0)
               ).toLocaleString()}{" "}
               € (année {params.lombardAnnee})
             </div>
@@ -248,11 +343,26 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         )}
 
         <div className="border-t-2 border-primary/50 pt-3 mt-3">
-          <div className="flex justify-between items-center font-semibold text-on-surface-light dark:text-on-surface-dark">
-            <span>Capital total disponible :</span>
-            <span className="text-lg text-primary font-bold">
-              {Math.round(capitalTotalAvecLombard).toLocaleString()} €
-            </span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center font-semibold text-on-surface-light dark:text-on-surface-dark">
+              <span>Capital total disponible :</span>
+              <span className="text-lg text-primary font-bold">
+                {Math.round(capitalTotalAvecLombard).toLocaleString()} €
+              </span>
+            </div>
+            {params.versementPeriodiqueActif && params.versementMontant > 0 && (
+              <div className="text-xs text-on-surface-variant-light dark:text-on-surface-variant-dark flex justify-between">
+                <span>Dont versements futurs (8 ans) :</span>
+                <span className="font-semibold">
+                  {(
+                    (params.versementFrequence === "mensuel"
+                      ? params.versementMontant * 12
+                      : params.versementMontant * 52.18) * 8
+                  ).toLocaleString()}{" "}
+                  €
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -321,8 +431,9 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-          * Capital initial + crédit Lombard = capital total • Objectif :
-          allocation 100% • Inflation : érosion pouvoir d'achat
+          * Capital initial + versements périodiques + crédit Lombard = capital
+          total • Objectif : allocation 100% • Inflation : érosion pouvoir
+          d'achat • Versements alloués selon les pourcentages définis
         </div>
       </ParamCard>
 
@@ -336,7 +447,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Assurance Vie
           </>
         }
-        color="bg-green-500"
+        color="from-emerald-500 via-teal-500 to-cyan-500"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="av-actif" className="font-bold text-sm">
@@ -430,7 +541,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             SCPI
           </>
         }
-        color="bg-yellow-500"
+        color="from-amber-500 via-orange-500 to-yellow-500"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="scpi-actif" className="font-bold text-sm">
@@ -504,7 +615,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Immobilier LMNP
           </>
         }
-        color="bg-red-500"
+        color="from-rose-500 via-red-500 to-pink-600"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="immo-actif" className="font-bold text-sm">
@@ -596,7 +707,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Allocation Actions
           </>
         }
-        color="from-yellow-500 to-blue-600"
+        color="from-amber-400 via-yellow-500 to-orange-500"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="actions-actif" className="font-bold text-sm">
@@ -700,7 +811,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             PER
           </>
         }
-        color="bg-blue-600"
+        color="from-violet-500 via-purple-600 to-indigo-600"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="per-actif" className="font-bold text-sm">
@@ -789,7 +900,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             Crédit Lombard
           </>
         }
-        color="bg-blue-500"
+        color="from-blue-400 via-cyan-500 to-blue-600"
       >
         <div
           className={`flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 ${
@@ -823,10 +934,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               : "opacity-50 pointer-events-none"
           }`}
         >
-          <InputGroup
-            label="% à emprunter sur Actions"
-            tooltip="LTV (Loan-to-Value) : % de votre portefeuille Actions que vous pouvez emprunter."
-          >
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-600">
+            <div className="flex justify-between items-center mb-3">
+              <label className="font-bold text-base text-on-surface-light dark:text-on-surface-dark flex items-center gap-2">
+                % à emprunter sur Actions
+                <TooltipIcon text="LTV (Loan-to-Value) : pourcentage de votre portefeuille Actions que vous pouvez emprunter. Ex : 50% de 100 000€ en Actions = 50 000€ empruntés. Max généralement 80%." />
+              </label>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-primary">
+                  {params.lombardAlloc.toFixed(1)}%
+                </span>
+              </div>
+            </div>
             <Slider
               value={params.lombardAlloc}
               onChange={(e) =>
@@ -836,10 +955,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               max="80"
               step="0.5"
             />
-            <div className="text-center font-bold text-lg text-primary">
-              {params.lombardAlloc.toFixed(1)}%
-            </div>
-          </InputGroup>
+          </div>
           <InputGroup label="Année de contraction">
             <Select
               value={params.lombardAnnee}
@@ -892,7 +1008,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             PEL
           </>
         }
-        color="bg-cyan-500"
+        color="from-cyan-400 via-sky-500 to-blue-500"
       >
         <div className="flex items-center justify-between mb-5 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-600">
           <label htmlFor="pel-actif" className="font-bold text-sm">

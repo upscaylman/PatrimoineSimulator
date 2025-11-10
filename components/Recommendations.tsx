@@ -1,5 +1,5 @@
 import React from "react";
-import { MdCheckCircle, MdLightbulb, MdWarning } from "react-icons/md";
+import { MdCheckCircle, MdClose, MdLightbulb, MdWarning } from "react-icons/md";
 import { PLAFONDS, SCPI_DATA } from "../constants";
 import type { SimulationParams, Synthesis } from "../types";
 
@@ -129,7 +129,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
       : 0;
     const pctNonAlloue = ((1 - synthese.totalAllocPct / 100) * 100).toFixed(1);
     listItems.push({
-      text: `<strong>⚠️ Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € conservé en cash (${pctNonAlloue}%) • ${
+      text: `<strong>Capital non investi :</strong> ${synthese.capitalNonAlloue.toLocaleString()} € conservé en cash (${pctNonAlloue}%) • ${
         params.inflationActif
           ? `Valeur réelle : ${capitalNonAlloueReel.toLocaleString()} € (perte : ${perteInflation.toLocaleString()} €)`
           : "Aucun rendement"
@@ -152,7 +152,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
   const objectifAtteint = parseFloat(tauxFiscalite) < 25;
   listItems.push({
     text: `<strong>Taux de prélèvement global :</strong> ${tauxFiscalite}% ${
-      objectifAtteint ? "✓ Objectif atteint" : "⚠️ Objectif < 25%"
+      objectifAtteint ? "Objectif atteint" : "Objectif < 25%"
     }`,
     icon: objectifAtteint ? (
       <span className="inline-flex items-center mr-1">
@@ -165,15 +165,96 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
     ),
   });
 
-  listItems.push(
-    `<strong>Modules actifs :</strong> ${params.avActif ? "✓ AV" : "✗ AV"} | ${
-      params.scpiActif ? "✓ SCPI" : "✗ SCPI"
-    } | ${params.immoActif ? "✓ Immo" : "✗ Immo"} | ${
-      params.actionsActif ? "✓ Actions" : "✗ Actions"
-    } | ${params.lombardActif ? "✓ Lombard" : "✗ Lombard"} | ${
-      params.pelActif ? "✓ PEL" : "✗ PEL"
-    } | ${params.perActif ? "✓ PER" : "✗ PER"}`
+  // Modules actifs avec icônes React
+  const modulesActifs = (
+    <>
+      <strong>Modules actifs :</strong>{" "}
+      {params.avActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          AV
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          AV
+        </span>
+      )}{" "}
+      |{" "}
+      {params.scpiActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          SCPI
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          SCPI
+        </span>
+      )}{" "}
+      |{" "}
+      {params.immoActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          Immo
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          Immo
+        </span>
+      )}{" "}
+      |{" "}
+      {params.actionsActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          Actions
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          Actions
+        </span>
+      )}{" "}
+      |{" "}
+      {params.lombardActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          Lombard
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          Lombard
+        </span>
+      )}{" "}
+      |{" "}
+      {params.pelActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          PEL
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          PEL
+        </span>
+      )}{" "}
+      |{" "}
+      {params.perActif ? (
+        <span className="inline-flex items-center">
+          <MdCheckCircle size={14} className="mr-1" />
+          PER
+        </span>
+      ) : (
+        <span className="inline-flex items-center">
+          <MdClose size={14} className="mr-1" />
+          PER
+        </span>
+      )}
+    </>
   );
+  listItems.push(modulesActifs);
 
   return (
     <div className="bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 p-6 rounded-2xl">
@@ -182,20 +263,42 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
         Recommandations Personnalisées
       </h3>
       <ul className="space-y-3 list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300">
-        {listItems.map((item, index) => (
-          <li
-            key={index}
-            className="flex items-start gap-1"
-            dangerouslySetInnerHTML={{
-              __html:
-                typeof item === "object" && item.icon
-                  ? `${item.icon} ${item.text}`
-                  : typeof item === "object"
-                  ? item.text
-                  : item,
-            }}
-          />
-        ))}
+        {listItems.map((item, index) => {
+          if (typeof item === "object" && React.isValidElement(item)) {
+            // Cas spécial pour les modules actifs (élément React)
+            return (
+              <li key={index} className="flex items-start gap-1">
+                {item}
+              </li>
+            );
+          } else if (typeof item === "object" && item.icon) {
+            // Cas avec icône et texte HTML
+            return (
+              <li key={index} className="flex items-start gap-1">
+                {item.icon}
+                <span dangerouslySetInnerHTML={{ __html: item.text }} />
+              </li>
+            );
+          } else if (typeof item === "object") {
+            // Cas avec seulement texte HTML
+            return (
+              <li
+                key={index}
+                className="flex items-start gap-1"
+                dangerouslySetInnerHTML={{ __html: item.text }}
+              />
+            );
+          } else {
+            // Cas avec texte HTML simple
+            return (
+              <li
+                key={index}
+                className="flex items-start gap-1"
+                dangerouslySetInnerHTML={{ __html: item }}
+              />
+            );
+          }
+        })}
       </ul>
     </div>
   );
