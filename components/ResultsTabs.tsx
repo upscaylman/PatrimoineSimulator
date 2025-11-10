@@ -29,10 +29,15 @@ export const ResultsTabs: React.FC<ResultsTabsProps> = ({
   onTabChange,
 }) => {
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+    <div className="border-b border-gray-200 dark:border-gray-600 mb-6">
       <nav
-        className="flex flex-wrap gap-2 overflow-x-auto"
+        className="flex flex-nowrap gap-2 overflow-x-auto"
         aria-label="Onglets de résultats"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -42,8 +47,8 @@ export const ResultsTabs: React.FC<ResultsTabsProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 font-semibold text-sm transition-all duration-300
-                border-b-2 rounded-t-lg whitespace-nowrap flex-shrink-0
+                flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-3 font-semibold text-xs md:text-sm transition-all duration-300
+                border-b-2 rounded-t-lg whitespace-nowrap flex-shrink-0 min-w-fit
                 ${
                   isActive
                     ? "border-primary text-primary bg-primary/5"
@@ -51,8 +56,9 @@ export const ResultsTabs: React.FC<ResultsTabsProps> = ({
                 }
               `}
             >
-              <Icon size={18} />
-              <span>{tab.label}</span>
+              <Icon size={16} className="md:w-[18px] md:h-[18px]" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.substring(0, 4)}</span>
             </button>
           );
         })}

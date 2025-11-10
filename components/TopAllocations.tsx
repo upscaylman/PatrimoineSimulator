@@ -13,8 +13,14 @@ interface TopAllocationsProps {
 }
 
 export const TopAllocations: React.FC<TopAllocationsProps> = ({ params }) => {
-  if (!params.actionsActif || params.actionsAlloc === 0) {
-    return null;
+  if (!params.actionsActif) {
+    return (
+      <div className="mt-8">
+        <p className="text-center py-5 text-gray-600 dark:text-gray-400">
+          Module Actions désactivé
+        </p>
+      </div>
+    );
   }
 
   const allocations = [
@@ -90,7 +96,8 @@ export const TopAllocations: React.FC<TopAllocationsProps> = ({ params }) => {
                   <p className="text-red-500 dark:text-red-400">
                     <strong>Fiscalité :</strong> -
                     {Math.round(fiscaliteSP500 + fiscaliteBTC).toLocaleString()}{" "}
-                    €
+                    € (PEA {Math.round(fiscaliteSP500).toLocaleString()} € + CTO{" "}
+                    {Math.round(fiscaliteBTC).toLocaleString()} €)
                   </p>
                   <p className="text-primary font-bold text-lg">
                     <strong>Gain net :</strong> +

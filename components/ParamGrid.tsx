@@ -256,19 +256,23 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between my-5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-          <label
-            htmlFor="inflation-actif"
-            className="font-bold text-sm flex items-center gap-2"
-          >
-            Prendre en compte l'inflation
-            <TooltipIcon text="Érosion du pouvoir d'achat. Activez pour voir la valeur réelle de votre patrimoine." />
-          </label>
-          <Switch
-            id="inflation-actif"
-            checked={params.inflationActif}
-            onChange={(e) => onParamChange("inflationActif", e.target.checked)}
-          />
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex items-center justify-between flex-1 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+            <label
+              htmlFor="inflation-actif"
+              className="font-bold text-sm flex-1 min-w-0"
+            >
+              <span className="truncate">Prendre en compte l'inflation</span>
+            </label>
+            <Switch
+              id="inflation-actif"
+              checked={params.inflationActif}
+              onChange={(e) =>
+                onParamChange("inflationActif", e.target.checked)
+              }
+            />
+          </div>
+          <TooltipIcon text="Érosion du pouvoir d'achat. Activez pour voir la valeur réelle de votre patrimoine." />
         </div>
 
         <div
@@ -315,6 +319,10 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             {allocationStatus.icon}
             {allocationStatus.text}
           </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * Capital initial + crédit Lombard = capital total • Objectif :
+          allocation 100% • Inflation : érosion pouvoir d'achat
         </div>
       </ParamCard>
 
@@ -398,6 +406,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             />
           </InputGroup>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * Flat tax 2025 : 30% (12,8% IR + 17,2% PS) • Aucun plafond légal •
+          Source :{" "}
+          <a
+            href="https://www.service-public.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Service-Public.fr
+          </a>
+        </div>
       </ParamCard>
 
       {/* SCPI Card */}
@@ -460,6 +480,17 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             {SCPI_DATA[params.scpiProduit].tof}% | Cap:{" "}
             {SCPI_DATA[params.scpiProduit].capitalisation}
           </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * SCPI via AV • Aucun plafond • Dividendes → PEL ou AV • Source :{" "}
+          <a
+            href={SCPI_DATA[params.scpiProduit].sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            {SCPI_DATA[params.scpiProduit].source}
+          </a>
         </div>
       </ParamCard>
 
@@ -540,6 +571,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               onChange={(e) => onParamChange("venteImmo", e.target.checked)}
             />
           </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * LMNP micro-BIC : abattement 50% • Aucun plafond • PV immo : 6%/an IR
+          (années 6-21) • Source :{" "}
+          <a
+            href="https://www.service-public.fr/particuliers/vosdroits/F10864"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Impots.gouv.fr
+          </a>
         </div>
       </ParamCard>
 
@@ -633,6 +676,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             </div>
           )}
         </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * PEA plafond : 150 000 € • Après 5 ans : PS 17,2% • CTO illimité :
+          flat tax 30% • Source :{" "}
+          <a
+            href="https://www.service-public.fr/particuliers/vosdroits/F2385"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Service-Public.fr
+          </a>
+        </div>
       </ParamCard>
 
       {/* PER Card */}
@@ -709,6 +764,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               {perWarning.message}
             </div>
           )}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * PER 2025 : plafond ~33 000 €/an (10% revenus) • Déduction IR
+          immédiate • Bloqué jusqu'à 62 ans • Source :{" "}
+          <a
+            href="https://www.service-public.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Service-Public.fr
+          </a>
         </div>
       </ParamCard>
 
@@ -808,6 +875,11 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
             </Select>
           </InputGroup>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * Crédit garanti par portefeuille Actions • Montant ajouté au capital
+          disponible • Remboursement sur flux • Fiscalité suspendue pendant
+          crédit
+        </div>
       </ParamCard>
 
       {/* PEL Card */}
@@ -863,6 +935,18 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
               </option>
             </Select>
           </InputGroup>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pt-4 border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-800/40 px-6 pb-4 rounded-b-3xl text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+          * PEL 2025 : plafond 61 200 € • Taux 1,75% brut • Flat tax 30% sur
+          intérêts • Source :{" "}
+          <a
+            href="https://www.service-public.fr/particuliers/vosdroits/F16140"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Service-Public.fr
+          </a>
         </div>
       </ParamCard>
     </div>

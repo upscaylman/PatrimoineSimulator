@@ -24,7 +24,7 @@ const DarkModeToggle: React.FC<{ darkMode: boolean; toggle: () => void }> = ({
   <button
     onClick={toggle}
     aria-label="Toggle dark mode"
-    className="absolute top-4 sm:top-6 right-16 sm:right-20 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+    className="absolute top-4 sm:top-6 right-4 sm:right-6 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 z-10"
   >
     {darkMode ? <MdLightMode size={20} /> : <MdDarkMode size={20} />}
   </button>
@@ -32,8 +32,8 @@ const DarkModeToggle: React.FC<{ darkMode: boolean; toggle: () => void }> = ({
 
 const Loader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => (
   <div
-    className={`absolute top-4 sm:top-6 right-4 sm:right-6 w-10 h-10 transition-opacity duration-300 ${
-      isLoading ? "opacity-100" : "opacity-0"
+    className={`absolute top-4 sm:top-6 right-16 sm:right-20 w-10 h-10 transition-opacity duration-300 ${
+      isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
     }`}
   >
     <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -3,9 +3,12 @@ import {
   MdAccessTime,
   MdAccountBalanceWallet,
   MdBarChart,
+  MdBusinessCenter,
   MdDiamond,
   MdPayments,
+  MdShowChart,
   MdTrendingUp,
+  MdWarning,
 } from "react-icons/md";
 import type { SimulationResults } from "../../types";
 import { SummaryCard } from "../SummaryCard";
@@ -19,6 +22,30 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
   results,
 }) => {
   const { synthese, params } = results;
+
+  // Construire la liste des modules actifs
+  const modulesActifs: string[] = [];
+  if (params.avActif) modulesActifs.push("AV");
+  if (params.scpiActif) modulesActifs.push("SCPI");
+  if (params.immoActif) modulesActifs.push("Immo");
+  if (params.actionsActif) modulesActifs.push("Actions");
+  if (params.pelActif) modulesActifs.push("PEL");
+  if (params.perActif) modulesActifs.push("PER");
+  if (synthese.capitalNonAlloue > 0) modulesActifs.push("Cash");
+  if (synthese.capitalLombard > 0) modulesActifs.push("Lombard");
+
+  const modulesText = modulesActifs.join(" + ");
+
+  // Calculer les valeurs pour Capital Non Investi
+  const capitalNonAlloueReel = params.inflationActif
+    ? Math.round(
+        synthese.capitalNonAlloue / Math.pow(1 + params.inflationTaux / 100, 8)
+      )
+    : synthese.capitalNonAlloue;
+  const perteInflation = params.inflationActif
+    ? Math.round(synthese.capitalNonAlloue - capitalNonAlloueReel)
+    : 0;
+  const pctNonAlloue = ((1 - synthese.totalAllocPct / 100) * 100).toFixed(1);
 
   return (
     <div className="animate-fade-in">
@@ -35,9 +62,25 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
           value={synthese.patrimoineFinalNet}
           isCurrency={true}
           subtext={
-            params.inflationActif
-              ? `Réel: ${synthese.patrimoineFinalNetReel.toLocaleString()} €`
-              : ""
+            <>
+              {modulesText}
+              {params.inflationActif && (
+                <>
+                  <br />
+                  Réel (inflation):{" "}
+                  {synthese.patrimoineFinalNetReel.toLocaleString()} €
+                </>
+              )}
+              {synthese.detteFinal > 0 && (
+                <>
+                  <br />
+                  <span className="text-yellow-200">
+                    ⚠️ Après déduction dette Lombard (
+                    {synthese.detteFinal.toLocaleString()} €)
+                  </span>
+                </>
+              )}
+            </>
           }
         />
         <SummaryCard
@@ -49,9 +92,20 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
               Plus-Value Totale (NET)
             </>
           }
-          value={synthese.plusValueTotale}
-          isCurrency={true}
-          subtext={`(${synthese.plusValuePct}%)`}
+          value={`+${synthese.plusValueTotale.toLocaleString()} €`}
+          isCurrency={false}
+          subtext={
+            <>
+              ({synthese.plusValuePct}%)
+              {params.inflationActif && (
+                <>
+                  <br />
+                  Réel : +{synthese.plusValueTotaleReelle.toLocaleString()} € (
+                  {synthese.plusValuePctReelle}%)
+                </>
+              )}
+            </>
+          }
         />
         <SummaryCard
           title={
@@ -64,7 +118,7 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
           }
           value={synthese.rentesCumulees}
           isCurrency={true}
-          subtext={`Net: ${synthese.rentesCumuleesNettes.toLocaleString()} €`}
+          subtext={`Brut • Net : ${synthese.rentesCumuleesNettes.toLocaleString()} €`}
         />
         <SummaryCard
           title={
@@ -78,9 +132,16 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
           value={synthese.fiscaliteTotale}
           isCurrency={true}
           subtext={
-            params.perActif
-              ? `Éco IR PER: -${synthese.economiesIRPER.toLocaleString()} €`
-              : ""
+            <>
+              Flat tax + LMNP + PV
+              {params.perActif && (
+                <>
+                  <br />
+                  Économie IR PER : -{synthese.economiesIRPER.toLocaleString()}{" "}
+                  €
+                </>
+              )}
+            </>
           }
         />
         <SummaryCard
@@ -93,14 +154,44 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
             </>
           }
           value={
-            synthese.renteInfinie
-              ? "∞"
-              : `${synthese.dureeRenteAns}a ${synthese.dureeRenteMois}m`
+            params.avActif
+              ? synthese.renteInfinie
+                ? "∞ (perpétuelle)"
+                : `${synthese.dureeRenteAns} ans ${synthese.dureeRenteMois} mois`
+              : "N/A"
           }
           subtext={
-            synthese.renteInfinie
-              ? "Rente perpétuelle"
-              : `Restant: ${synthese.dureeRenteAns}a ${synthese.dureeRenteMois}m`
+            params.avActif ? (
+              <>
+                {synthese.renteInfinie ? (
+                  "Rendement net AV ≥ rente"
+                ) : (
+                  <>
+                    Utilisé : {Math.floor(synthese.anneesConsommees)} ans |
+                    Restant : {synthese.dureeRestanteAns}a{" "}
+                    {synthese.dureeRestanteMois}m
+                  </>
+                )}
+                {synthese.renteStoppee !== null && (
+                  <>
+                    <br />
+                    <span className="inline-block mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-yellow-400 text-yellow-900">
+                      ⚠️ Capital épuisé en année {synthese.renteStoppee}
+                    </span>
+                  </>
+                )}
+                {synthese.renteInfinie && synthese.renteStoppee === null && (
+                  <>
+                    <br />
+                    <span className="inline-block mt-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-green-500 text-white">
+                      ✓ Rente perpétuelle
+                    </span>
+                  </>
+                )}
+              </>
+            ) : (
+              ""
+            )
           }
         />
         <SummaryCard
@@ -115,11 +206,116 @@ export const ResultsSynthese: React.FC<ResultsSyntheseProps> = ({
           value={parseFloat(synthese.rendementAnnuelMoyen)}
           isPercent={true}
           subtext={
-            params.inflationActif
-              ? `Réel: ${synthese.rendementAnnuelMoyenReel}%`
-              : ""
+            <>
+              Performance après impôts
+              {params.inflationActif && (
+                <>
+                  <br />
+                  Réel : {synthese.rendementAnnuelMoyenReel}% (inflation :{" "}
+                  {synthese.inflationCumulee}%)
+                </>
+              )}
+            </>
           }
         />
+
+        {/* Capital Non Investi - Carte conditionnelle */}
+        {synthese.capitalNonAlloue > 0 && (
+          <SummaryCard
+            title={
+              <>
+                <span className="inline-flex items-center mr-1">
+                  <MdWarning size={16} />
+                </span>
+                Capital Non Investi
+              </>
+            }
+            value={synthese.capitalNonAlloue}
+            isCurrency={true}
+            subtext={
+              <>
+                Conservé en cash ({pctNonAlloue}%)
+                {params.inflationActif ? (
+                  <>
+                    <br />
+                    Valeur réelle: {capitalNonAlloueReel.toLocaleString()} €
+                    <br />
+                    (perte: {perteInflation.toLocaleString()} €)
+                  </>
+                ) : (
+                  <>
+                    <br />
+                    Aucun rendement
+                  </>
+                )}
+              </>
+            }
+            customGradient="bg-gradient-to-br from-orange-500 to-red-500"
+          />
+        )}
+
+        {/* Dividendes SCPI - Carte conditionnelle */}
+        {params.scpiActif && synthese.dividendesSCPICumules > 0 && (
+          <SummaryCard
+            title={
+              <>
+                <span className="inline-flex items-center mr-1">
+                  <MdBusinessCenter size={16} />
+                </span>
+                Dividendes SCPI (NET)
+              </>
+            }
+            value={synthese.dividendesSCPICumules}
+            isCurrency={true}
+            subtext={`Sur 8 ans • Vers ${params.pelActif ? "PEL" : "AV"}`}
+          />
+        )}
+
+        {/* Crédit Lombard - Carte conditionnelle */}
+        {params.lombardActif && synthese.montantLombardEmprunte > 0 && (
+          <SummaryCard
+            title={
+              <>
+                <span className="inline-flex items-center mr-1">
+                  <MdAccountBalanceWallet size={16} />
+                </span>
+                Crédit Lombard
+              </>
+            }
+            value={synthese.montantLombardEmprunte}
+            isCurrency={true}
+            subtext={
+              <>
+                Emprunté (année {params.lombardAnnee})
+                <br />
+                Coût intérêts: {synthese.coutLombardTotal.toLocaleString()} €
+              </>
+            }
+          />
+        )}
+
+        {/* PER Final - Carte conditionnelle */}
+        {params.perActif && synthese.perFinal > 0 && (
+          <SummaryCard
+            title={
+              <>
+                <span className="inline-flex items-center mr-1">
+                  <MdShowChart size={16} />
+                </span>
+                PER Final (NET)
+              </>
+            }
+            value={synthese.perFinal}
+            isCurrency={true}
+            subtext={
+              <>
+                Dispo à 62 ans
+                <br />
+                Éco IR: {synthese.economiesIRPER.toLocaleString()} €
+              </>
+            }
+          />
+        )}
       </div>
 
       <TopAllocations params={params} />
