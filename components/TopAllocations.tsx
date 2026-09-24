@@ -37,7 +37,7 @@ export const TopAllocations: React.FC<TopAllocationsProps> = ({ params }) => {
   return (
     <div className="mt-8">
       <h3 className="text-2xl font-bold mb-6 text-on-surface-light dark:text-on-surface-dark flex items-center gap-2">
-        <MdEmojiEvents className="w-6 h-6" />
+        <span className="inline-flex w-6 h-6"><MdEmojiEvents /></span>
         Top 3 des Meilleures Allocations
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
