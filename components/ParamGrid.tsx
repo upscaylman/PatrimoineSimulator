@@ -231,7 +231,7 @@ export const ParamGrid: React.FC<ParamGridProps> = ({
         {params.lombardActif && (
           <div className="my-4 p-3 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 rounded-r-lg">
             <div className="font-semibold text-blue-800 dark:text-blue-200 text-sm flex items-center gap-1">
-              <MdAccountBalance className="w-4 h-4" />+ Crédit Lombard
+              <span className="inline-flex w-4 h-4"><MdAccountBalance /></span>+ Crédit Lombard
             </div>
             <div className="text-xs text-blue-600 dark:text-blue-300">
               {Math.round(

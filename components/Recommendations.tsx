@@ -93,7 +93,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
   return (
     <div className="bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 p-6 rounded-2xl">
       <h3 className="text-xl font-bold mb-4 text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
-        <MdLightbulb className="w-5 h-5" />
+        <span className="inline-flex w-5 h-5"><MdLightbulb /></span>
         Recommandations
       </h3>
       <ul className="space-y-3 list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300">
